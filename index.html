@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SwapMeep — prototype with images</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f4f6;--panel:#fff;--ink:#111827;--ink2:#4b5563;--ink3:#9ca3af;--line:#e5e7eb;--side:#141a23;--side2:#1e2632;
+  --accent:#2f6fed;--accent-bg:#e8f0fe;
+  --pledged:#7c5cc4;--pm:#3d6fd9;--ship:#c27a0e;--owned:#1f8a5b;--listed:#c2410c;--sold:#6b7280;--warn:#b42318;--warn-bg:#fdecea;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45}
+button{font:inherit;cursor:pointer}
+.app{display:grid;grid-template-columns:228px 1fr;min-height:100vh}
+aside{background:var(--side);color:#cbd5e1;padding:18px 12px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:17px;padding:4px 8px 16px}
+.brand .mk{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#2f6fed,#1f8a5b);display:grid;place-items:center;font-size:14px}
+.nav{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:#cbd5e1;background:none;border:0;text-align:left;width:100%}
+.nav:hover{background:var(--side2)}
+.nav.on{background:#273244;color:#fff}
+.nav .badge{margin-left:auto;font-family:var(--mono);font-size:11px;background:#334155;color:#e2e8f0;border-radius:10px;padding:1px 7px}
+.nav .badge.hot{background:var(--warn);color:#fff}
+.side-sep{border-top:1px solid #263041;margin:10px 4px}
+.who{margin-top:auto;padding:10px;background:var(--side2);border-radius:10px;font-size:12px}
+.who select{width:100%;margin-top:6px;background:#0f141b;color:#e2e8f0;border:1px solid #334155;border-radius:6px;padding:6px}
+main{padding:22px 28px 60px;min-width:0}
+.top{display:flex;align-items:flex-end;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.top h1{font-size:22px;margin:0}
+.top .sub{color:var(--ink2);font-size:13px}
+.top .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;font-weight:500}
+.btn:hover{border-color:#cbd5e1}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.pri:disabled{opacity:.45;cursor:default}
+.btn.sm{padding:4px 9px;font-size:12px}
+.btn.ghost{background:none;border-color:transparent;color:var(--ink2)}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.kpi .l{font-size:12px;color:var(--ink2)}
+.kpi .v{font-family:var(--mono);font-size:24px;font-weight:500;margin-top:2px}
+.kpi .s{font-size:11px;color:var(--ink3)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);padding:0 10px}
+.tab{background:none;border:0;padding:12px 12px 10px;color:var(--ink2);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;gap:7px;align-items:center}
+.tab.on{color:var(--ink);border-bottom-color:var(--ink)}
+.tab .n{font-family:var(--mono);font-size:11px;background:#f1f5f9;border-radius:9px;padding:0 6px;color:var(--ink2)}
+.filters{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
+.filters input,.filters select{border:1px solid var(--line);border-radius:7px;padding:6px 9px;font:inherit;font-size:13px;background:#fff}
+.filters input{min-width:220px}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3);font-weight:600;text-align:left;padding:9px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 14px;border-bottom:1px solid #f1f2f4;vertical-align:middle}
+tr.click:hover td{background:#f8fafc;cursor:pointer}
+.num{font-family:var(--mono);font-size:13px;text-align:right;white-space:nowrap}
+.dim{color:var(--ink3)}
+.game{display:flex;align-items:center;gap:10px;min-width:0}
+.cov.img{position:relative;overflow:hidden;background:#e5e7eb!important}.cov.img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}.cov.img span{position:relative}
+.cov{width:30px;height:30px;border-radius:6px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:11px;flex:none;letter-spacing:.02em}
+.gname{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px}
+.gsub{font-size:12px;color:var(--ink3)}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;border-radius:20px;padding:2px 9px;border:1px solid currentColor;white-space:nowrap;background:#fff}
+.chip.pledged{color:var(--pledged)}.chip.pm{color:var(--pm)}.chip.ship{color:var(--ship)}.chip.owned{color:var(--owned)}.chip.listed{color:var(--listed)}.chip.sold{color:var(--sold)}
+.chip.plain{color:var(--ink2);border-color:var(--line)}
+.chip.warn{color:var(--warn);background:var(--warn-bg);border-color:transparent}
+.chip.sample{color:#7a5d00;background:#fff6d6;border-color:transparent;font-size:11px}
+.chip.real{color:#0f6b45;background:#e3f5ec;border-color:transparent;font-size:11px}
+.prog{display:flex;gap:3px}
+.prog i{width:16px;height:5px;border-radius:3px;background:#e5e7eb}
+.prog i.f{background:var(--ink)}
+.plat{font-size:12px;color:var(--ink2)}
+.empty{padding:40px;text-align:center;color:var(--ink2)}
+.drawer-bg{position:fixed;inset:0;background:rgba(15,23,42,.35);display:none;z-index:20}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(520px,100vw);background:#fff;z-index:21;transform:translateX(100%);transition:transform .2s;display:flex;flex-direction:column;box-shadow:-10px 0 30px rgba(0,0,0,.12)}
+.drawer.open{transform:none}.drawer-bg.open{display:block}
+.drawer header{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start}
+.drawer header .cov{width:48px;height:48px;font-size:15px;border-radius:9px}
+.drawer .body{padding:16px 20px;overflow:auto;flex:1}
+.drawer h3{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink3);margin:18px 0 8px}
+.tl{list-style:none;padding:0;margin:0;border-left:2px solid var(--line);margin-left:6px}
+.tl li{position:relative;padding:0 0 14px 16px}
+.tl li::before{content:'';position:absolute;left:-6px;top:4px;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--ink3)}
+.tl li.real::before{border-color:var(--accent)}
+.tl .d{font-family:var(--mono);font-size:12px;color:var(--ink2)}
+.tl .src{font-size:12px;color:var(--ink3)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;padding:14px 20px;border-top:1px solid var(--line)}
+.field{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink2);margin-bottom:10px}
+.field input,.field select{border:1px solid var(--line);border-radius:7px;padding:7px 9px;font:inherit;font-size:14px}
+.kv{display:grid;grid-template-columns:140px 1fr;gap:6px 12px;font-size:13px}
+.kv div:nth-child(odd){color:var(--ink2)}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 16px;border-radius:9px;font-size:13px;z-index:40;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+.sync-row td{background:#fff}
+.sync-row.approved td{background:#f0faf5}
+.sync-row.skipped td{opacity:.45}
+.arrow{font-family:var(--mono);color:var(--ink3);padding:0 6px}
+.strike{text-decoration:line-through;color:var(--ink3)}
+.section-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.section-h h2{font-size:15px;margin:0}
+.section-h .sub{font-size:12px;color:var(--ink2)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.att{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start}
+.att:last-child{border-bottom:0}
+.att .t{font-weight:600}
+.att .m{font-size:13px;color:var(--ink2)}
+.att .act{margin-left:auto;display:flex;gap:6px;flex:none}
+.att.done{opacity:.45}
+.hero{background:linear-gradient(135deg,#1b2433,#22324a);color:#e2e8f0;border-radius:14px;padding:18px 20px;display:flex;gap:18px;align-items:center;margin-bottom:16px}
+.hero h2{margin:0 0 4px;color:#fff;font-size:18px}
+.hero .big{font-family:var(--mono);font-size:30px;color:#fff}
+.member{display:flex;gap:10px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer}
+.member:hover{border-color:#cbd5e1}
+.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;flex:none}
+.match{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+.match:last-child{border-bottom:0}
+.match .why{font-size:12px;color:var(--ink2)}
+.bar{height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.pill-row{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px}
+.note{font-size:12px;color:var(--ink2);padding:10px 16px;background:#fafafa;border-top:1px solid var(--line);border-radius:0 0 12px 12px}
+.sig{font-weight:600;font-size:12px}
+.sig.sell{color:var(--owned)}.sig.hold{color:var(--pm)}.sig.wait{color:var(--ship)}.sig.reprice{color:var(--listed)}
+.hide-m{}
+.revs{display:flex;gap:4px;flex-wrap:nowrap}
+.rv{display:inline-flex;align-items:center;gap:3px;border:1px solid var(--line);border-radius:14px;padding:1px 6px 1px 2px;font-family:var(--mono);font-size:11px;background:#fff;white-space:nowrap;text-decoration:none;color:var(--ink)}
+.rv i{position:relative;overflow:hidden;width:16px;height:16px;border-radius:50%;display:grid;place-items:center;color:#fff;font-style:normal;font-family:'IBM Plex Sans';font-weight:700;font-size:9px}
+.rv i img,.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.av{position:relative;overflow:hidden}
+.rv.hi{border-color:#86efac;background:#f0fdf4}.rv.lo{border-color:#fecaca;background:#fef2f2}
+.rv.vid{color:var(--ink2)}
+.vcard{display:flex;gap:10px;align-items:center;padding:9px 10px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;text-decoration:none;color:var(--ink)}
+.vcard:hover{border-color:#cbd5e1;background:#f8fafc}
+.vthumb{position:relative;width:96px;height:54px;border-radius:7px;overflow:hidden;background:#111;flex:none;display:grid;place-items:center}.vthumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.vthumb b{position:relative;background:rgba(255,0,51,.92);color:#fff;border-radius:6px;padding:2px 8px;font-size:11px}
+.vplay{width:44px;height:30px;border-radius:6px;background:#ff0033;display:grid;place-items:center;color:#fff;font-size:13px;flex:none}
+.vplay.none{background:#e5e7eb;color:var(--ink3)}
+.score-big{font-family:var(--mono);font-size:18px;font-weight:500;min-width:44px;text-align:right}
+.rrow{display:flex;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.rrow:last-child{border-bottom:0}
+.toggle{border:1px solid var(--line);border-radius:20px;padding:4px 12px;background:#fff;font-weight:500;font-size:12px}
+.toggle.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+@media (max-width:860px){
+  .app{grid-template-columns:1fr}
+  aside{position:static;height:auto;flex-direction:row;flex-wrap:wrap;padding:10px}
+  .brand{padding:4px 8px}
+  .nav{width:auto}.side-sep,.who{display:none}
+  main{padding:14px}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .hide-m{display:none}
+  .gname{max-width:180px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><div class="mk">▤</div>SwapMeep</div>
+    <button class="nav" data-route="collection">▦ My collection</button>
+    <button class="nav" data-route="sync">⇅ BGG sync <span class="badge" id="b-sync"></span></button>
+    <button class="nav" data-route="attention">⚑ Needs attention <span class="badge hot" id="b-att"></span></button>
+    <button class="nav" data-route="market">↗ Market &amp; Hot</button>
+    <button class="nav" data-route="reviewers">★ Reviewers I follow</button>
+    <div class="side-sep"></div>
+    <button class="nav" data-route="group">◎ Group: Thursday Table</button>
+    <button class="nav" data-route="shelf">☰ Friend shelves</button>
+    <div class="who">
+      Viewing as
+      <select id="asUser"></select>
+      <div style="margin-top:8px;color:#94a3b8">Prototype. Changes live in this tab only; nothing is sent to BGG. Images load live from BGG and YouTube.</div>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+<div class="drawer-bg" id="dbg"></div>
+<div class="drawer" id="drawer"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== DATA ===================== */
+// Real: Harris (BGG harrisc) & Marlon (BGG marLONE) collections read from public BGG pages on 2026-11-17;
+// Harris incoming/sold from Gmail subject lines. Ratings are real BGG averages. Prices are SAMPLE.
+const TODAY='2026-11-17';
+const USERS={
+  harris:{name:'Harris',bgg:'harrisc',real:true,color:'#2f6fed',totals:{entries:407,owned:273,trade:29,pre:9,prev:66,want:18}},
+  marlon:{name:'Marlon',bgg:'marLONE',real:true,color:'#1f8a5b',totals:{entries:546,owned:293,trade:21,pre:2,prev:182,want:19}},
+  jules:{name:'Jules',bgg:'—',real:false,color:'#c2410c',totals:{entries:118,owned:96,trade:6,pre:3,prev:14,want:9}},
+  ren:{name:'Ren',bgg:'—',real:false,color:'#7c5cc4',totals:{entries:0,owned:0,trade:0,pre:0,prev:0,want:0}}
+};
+let uid=0;const C=(o)=>Object.assign({id:'c'+(++uid),events:[]},o);
+
+// ---- Harris incoming (Gmail) ----
+const H_IN=[
+ ["Andromeda's Edge: Genesis","Gamefound","ship","2026-11-10","Pledge status → Preparing for shipping"],
+ ["Marco Polo Deluxe Master Set","Gamefound","pledged","2026-11-12","Pledge confirmation"],
+ ["An Infamous Traffic: Second Edition","Kickstarter","pledged","2026-10-30","Pledge collected"],
+ ["Whisperwood","Kickstarter + Gamefound","pm","2026-11-02","Final Pledge Over Time charge; Gamefound order Placed Oct 8"],
+ ["DECKO: Pistachio","Gamefound","pledged","2026-10-13","Pledge confirmation"],
+ ["The Lord of the Rings: Ascension","Gamefound","pm","2026-09-18","Pledge manager — pledge changed"],
+ ["Brass: Pittsburgh","Gamefound","pm","2026-09-03","Pledge manager — pledge changed"],
+ ["Galileo's Truth","Gamefound","pledged","2026-07-24","Pledge confirmation"],
+ ["Nippon: Genro + Zaibatsu","Kickstarter","pledged","2026-07-16","Pledge collected"],
+ ["Slay the Spire: Downfall","Kickstarter + Gamefound","pm","2026-06-16","Pledge manager — pledge changed"],
+ ["Concordia Special Edition","Gamefound","pledged","2026-06-09","Pledge confirmation"],
+ ["20 Strong: Nemesis, Tainted Grail & Etherfields","Gamefound","pm","2026-05-22","Pledge manager — pledge changed"],
+ ["The Old King's Crown 2nd Printing","Gamefound","pm","2026-03-12","Pledge status changed"],
+ ["JISOGI: Anime Studio Tycoon Reprint","Kickstarter","pledged","2026-03-05","Pledge collected"],
+ ["Arborea: Expanded Universe","Kickstarter","pledged","2026-02-05","Pledge collected"],
+ ["Galactic Cruise: Achievements Exp. & Reprint","Kickstarter","pledged","2025-12-03","Pledge collected (3rd charge)"],
+ ["Dice Throne Vanguard","Kickstarter / BackerKit","pm","2026-02-25","BackerKit survey confirmed"],
+ ["Hanami: Samurai Reimagined","Kickstarter / BackerKit","pm","2026-05-11","Shipping-address last call"],
+ ["Endeavor Deep Sea: Uncharted Waters","Kickstarter","pledged","2025-06-28","Pledge collected"],
+ ["Landmarks of the Lost Atlas","Kickstarter / BackerKit","pledged","2025-09-30","Pledge collected — survey NOT answered"],
+ ["Agricola Special Edition","Gamefound","ship","2026-08-26","Preparing for shipping — possibly already delivered"],
+ ["Distilled: Cocktails","Gamefound","ship","2026-06-05","Preparing for shipping — possibly already delivered"],
+];
+// ---- Harris owned (BGG, real ratings) ----
+const H_OWN=[["Brass: Birmingham",2018,8.389,9],["Ark Nova",2021,8.356,4],["Dune: Imperium",2020,8.218,2],["Terraforming Mars",2016,8.178],["Spirit Island",2017,8.141],["Dune: Imperium – Rise of Ix",2022,8.095],["Gloomhaven: Jaws of the Lion",2020,8.086],["Gaia Project",2017,8.083,5],["Ark Nova: Marine Worlds",2023,8.071],["SETI: Search for Extraterrestrial Intelligence",2024,8.063],["Slay the Spire: The Board Game",2024,8.056],["The Castles of Burgundy",2019,8.022,1],["The Lord of the Rings: Duel for Middle-earth",2024,8.008],["Through the Ages: A New Story of Civilization",2015,8.002,3],["Eclipse: Second Dawn for the Galaxy",2020,7.955],["Nemesis",2018,7.945],["Scythe",2016,7.936,1],["Concordia",2013,7.921],["The Lord of the Rings: Fate of the Fellowship",2025,7.792],["Harmonies",2024,7.785],["Endeavor: Deep Sea",2024,7.723],["Galactic Cruise",2025,7.602],["Andromeda's Edge",2024,7.430],["Castle Combo",2024,7.367],["Hot Streak",2025,7.225],["Shackleton Base: A Journey to the Moon",2024,7.155],["Finspan",2025,7.099],["Moon Colony Bloodbath",2025,7.094],["Puerto Rico 1897: Special Edition",2025,7.070],["Compile: Main 1",2024,6.974],["Skyrise",2024,6.840],["Critter Kitchen",2025,6.791],["Sweet Lands",2025,6.716],["Kelp: Shark vs Octopus",2024,6.646],["Container",2026,6.603],["Tenby",2025,6.422],["ORBIT",2025,6.042],["Madcala",2025,5.776],["Black Rose Wars: Rebirth",2023,6.744],["Vinhos: Deluxe Edition",2016,7.443],["Heat: Pedal to the Metal",2022,7.794,1],["Kanban EV",2020,7.812,3],["La Granja",2014,7.224],["La Granja",2014,7.224],["On Mars",2020,7.741,3],["On Mars",2020,7.741,3],["Lorenzo il Magnifico",2016,7.482,2],["World Wonders",2023,7.035]];
+// ---- Harris for trade (BGG) ----
+const H_TRADE=[["7 Wonders: Catan",2011,6.179],["Alhambra: Big Box Special Edition",2014,5.626],["Autobahn",2022,6.194,0,true],["Black Angel",2019,6.636],["Blue Lagoon",2018,6.698],["City Hall",2014,5.631],["Clans of Caledonia",2017,7.675],["Coimbra",2018,7.245],["Dinosaur Island",2017,7.216],["Dune",2019,7.350],["Flick 'em Up!",2015,6.543],["Hegemony: Lead Your Class to Victory",2023,7.828,0,true],["It's a Wonderful Kingdom",2021,6.434],["It's a Wonderful World",2019,7.382],["Kemet",2012,7.355],["King's Vineyard",2010,5.484],["London (Second Edition)",2017,7.001],["Luna",2010,6.717],["Machi Koro",2012,6.472],["The Manhattan Project: Chain Reaction",2016,5.897,1],["The Manhattan Project: Energy Empire",2016,7.114],["Mercado de Lisboa",2021,6.053],["Mythic Mischief",2022,6.308],["Orléans",2014,7.857],["Steam Park",2013,6.421],["Tabannusi: Builders of Ur",2021,6.297],["Terra Mystica: Big Box",2022,6.022],["Watergate",2019,7.370,1]];
+// ---- Harris sold (eBay via Gmail) ----
+const H_SOLD=[["The Fellowship of the Ring Trick-Taking Game","2026-08-14"],["The Fellowship of the Ring Trick-Taking Game","2026-06-26"],["The Fellowship of the Ring Trick-Taking Game","2026-06-12"],["The Two Towers Trick-Taking Game","2026-05-26"],["Two Towers Trick-Taking: Horses & Haradrim promo","2026-02-20"],["Hell of a Deal","2026-09-06"],["Spirit Island: Nature Incarnate","2026-06-26"],["Cerebria: Origin Box (KS exclusive)","2026-06-23"],["Puerto Rico 1897: Special Edition Terrain Pack","2026-06-21"],["Dead Cells: The Rogue-Lite Board Game","2026-02-24"],["Great Western Trail: New Zealand","2025-10-26"],["Eclipse – 2nd Dawn: Galactic Events","2024-12-06"]];
+// BGG preorder flags with no pledge email found (stale?)
+const H_STALE=["Too Many Bones","Robinson Crusoe: Adventures on the Cursed Island","Inis","John Company","Pax Pamir: Second Edition","Revive","Lords of Ragnarok"];
+const H_WANT=["Agricola","Cascadero","DECKO","Dune: Imperium – Uprising","Evacuation","A Feast for Odin","Fit to Print","Golem","Indonesia","Kutná Hora: The City of Silver","Lost Ruins of Arnak","Merchant of Venus (Second Edition)","Nusfjord","Obsession","Tiletum","Tzolk'in: The Mayan Calendar","Ultimate Railroads","World Wonders: Mundo Wonders Pack"];
+
+// ---- Marlon (BGG marLONE, real) ----
+const M_OWN=[["Brass: Birmingham",2018,8.389,23],["Ark Nova",2021,8.356,23],["Pandemic Legacy: Season 1",2015,8.341,27],["Spirit Island",2017,8.141,10],["Spirit Island: Branch & Claw",2017,8.130],["Gaia Project",2017,8.083,23],["Ark Nova: Marine Worlds",2023,8.071],["Slay the Spire: The Board Game",2024,8.056,17],["Viticulture: Tuscany Essential Edition",2016,7.985],["7 Wonders Duel",2015,7.948,14],["Scythe",2016,7.936,24],["Clank! Legacy: Acquisitions Incorporated",2019,7.928,30],["Scythe: The Rise of Fenris",2018,7.918],["Terra Mystica",2012,7.853,5],["Kanban EV",2020,7.812,1],["Viticulture Essential Edition",2015,7.800,22],["Heat: Pedal to the Metal",2022,7.794],["Marvel Champions: The Card Game",2019,7.789,233],["Harmonies",2024,7.785,8],["Galactic Cruise",2025,7.602,2],["Civolution",2024,7.447,7],["Planet Unknown (Deluxe)",2025,7.414,1],["Speakeasy",2025,7.380,3],["Hot Streak",2025,7.225,3],["Moon Colony Bloodbath",2025,7.094,1],["Ezra and Nehemiah",2024,7.050,6],["Flip 7",2024,6.992,3],["Inventions: Evolution of Ideas",2024,6.807,4],["Primal: The Awakening",2024,6.796,45],["Sankoré: The Pride of Mansa Musa",2024,6.509,2],["Clank! Legacy 2",2024,6.453,1],["Tenby",2025,6.422,1],["Tiletum",2022,7.230]];
+const M_TRADE=[["Too Many Bones",2017,7.841,15],["Too Many Bones: 40 Days in Daelore",2018,6.501],["Too Many Bones: Age of Tyranny",2018,6.375],["Too Many Bones: Ghillie",2017,6.684],["Too Many Bones: Nugget",2017,6.556],["Reef",2018,6.695,12],["Millennium Blades",2016,6.973,3],["Millennium Blades: Set Rotation",2017,5.961],["Yamataï",2017,6.720,5],["Tiny Epic Western",2016,6.191,5],["Tiny Epic Dungeons",2021,6.741,1],["Tiny Epic Kingdoms",2014,6.260],["Tiny Epic Zombies",2018,6.465],["Tiny Epic Mechs",2019,6.065],["Tiny Epic Dinosaurs",2020,6.604],["Tiny Epic Defenders (2nd Ed.)",2018,6.114],["Word on the Street",2009,6.080,3],["Copenhagen: Roll & Write",2019,5.799]];
+const M_PRE=[["Legendary: Marvel – 2099",2024],["Legendary: Marvel – Weapon X",2024]];
+const M_WANT=["The 7th Citadel","Black Rose Wars: Rebirth","Descent: Legends of the Dark","Dice Settlers: Western Sea","Disney Villainous: Despicable Plots","The Elder Scrolls: Betrayal of the Second Era","Eternal Decks","The Great Library","Legendary: Marvel – Captain America 75th","Legendary: Marvel – Fear Itself","Legendary: Marvel – Villains","The Lord of the Rings: Fate of the Fellowship","Pulsar 2849","Scythe: The Wind Gambit","Spirit Island: Jagged Earth","Spirit Island: Nature Incarnate","Tawantinsuyu: The Inca Empire","Vault of Dragons","Vinhos: Deluxe Edition"];
+
+// ---- Sample accounts ----
+const J_OWN=[["Wingspan",2019,7.837,12],["Cascadia",2021,7.728,9],["Azul",2017,7.600,20],["Everdell",2018,7.796,6],["Sky Team",2023,7.890,14]];
+const J_TRADE=[["Lost Ruins of Arnak",2020,7.921,8],["Splendor",2014,7.293,30]];
+const J_PRE=[["Marco Polo Deluxe Master Set",2026]];
+const J_WANT=["Orléans","Clans of Caledonia","Brass: Birmingham","Ark Nova"];
+
+/* build copies */
+function mk(owner,arr,state,extra={}){return arr.map(a=>C(Object.assign({owner,title:a[0],year:a[1],rating:a[2],plays:a[3]||0,state},extra,a[4]?{notOwnedFlag:true}:{})))}
+let copies=[];
+H_IN.forEach(r=>copies.push(C({owner:'harris',title:r[0],platform:r[1],state:r[2],date:r[3],lastEvent:r[4],bggPre:false,events:[{d:r[3],t:r[4],src:'Gmail · '+r[1].split(' ')[0],real:true}]})));
+copies.push(...mk('harris',H_OWN,'owned'));
+copies.push(...mk('harris',H_TRADE,'listed'));
+H_SOLD.forEach(r=>copies.push(C({owner:'harris',title:r[0],state:'sold',date:r[1],channel:'eBay',events:[{d:r[1],t:'eBay — "You made the sale"',src:'Gmail · eBay',real:true}]})));
+copies.push(...mk('marlon',M_OWN,'owned'));copies.push(...mk('marlon',M_TRADE,'listed'));
+M_PRE.forEach(r=>copies.push(C({owner:'marlon',title:r[0],year:r[1],state:'pledged',platform:'Retail preorder',date:'—'})));
+copies.push(...mk('jules',J_OWN,'owned',{sample:true}));copies.push(...mk('jules',J_TRADE,'listed',{sample:true}));
+J_PRE.forEach(r=>copies.push(C({owner:'jules',title:r[0],state:'pledged',platform:'Gamefound',date:'2026-11-12',sample:true})));
+const WANTS={harris:H_WANT,marlon:M_WANT,jules:J_WANT,ren:[]};
+// copy numbering for duplicates
+(function(){const g={};copies.forEach(c=>{const k=c.owner+'|'+c.title+'|'+c.state;(g[k]=g[k]||[]).push(c)});Object.values(g).forEach(a=>{if(a.length>1)a.forEach((c,i)=>{c.copyN=i+1;c.copyOf=a.length})})})();
+
+/* sync queue (Harris) */
+let syncQ=[];
+copies.filter(c=>c.owner==='harris'&&['pledged','pm','ship'].includes(c.state)).forEach(c=>syncQ.push({id:'s'+c.id,copy:c.id,title:c.title,from:'not in collection',to:'Preordered',why:c.lastEvent+' ('+fmt(c.date)+')',kind:'add',state:'pending'}));
+const soldNotOnBgg=["Spirit Island: Nature Incarnate","Hell of a Deal","Dead Cells: The Rogue-Lite Board Game","Great Western Trail: New Zealand","Eclipse – 2nd Dawn: Galactic Events","Cerebria: Origin Box (KS exclusive)"];
+soldNotOnBgg.forEach(t=>syncQ.push({id:'s-'+t,title:t,from:'not in collection',to:'Prev. owned',why:'Sold on eBay — never added to BGG. Add for history?',kind:'optional',state:'pending'}));
+let review=[...H_STALE.map(t=>({id:'r-'+t,title:t,text:'BGG says Preordered, but no pledge or order email found in ~2 years.'+(t==='Too Many Bones'?' Marlon has a copy for trade.':''),opts:['Keep preordered','Clear flag','Later'],state:'open'})),
+ {id:'r-ww',title:'World Wonders',text:'BGG has it as Owned + Preordered at the same time. Probably the expansion pre-order is on the base-game row.',opts:['Keep owned only','Keep both','Later'],state:'open'}];
+let pushHistory=[];
+
+/* attention */
+let attention=[
+ {id:'a1',lvl:'warn',cat:'Blocks a delivery',t:'Landmarks of the Lost Atlas — BackerKit survey still unanswered',m:'Pledge collected Sep 30, 2025. BackerKit has sent a "Response needed" reminder every month since (latest Nov 11). No survey = no shipment.',act:['Open BackerKit email','Mark answered']},
+ {id:'a2',lvl:'info',cat:'Pledge manager',t:'Lorenzo il Magnifico: A New Renaissance — pledge manager open',m:'You get its updates but the Nov 16 email says "Didn\'t pledge yet?". Did you back it?',act:['I backed it','Not backing']},
+ {id:'a3',lvl:'info',cat:'Data quality',t:'7 BGG preorders with no matching email',m:H_STALE.join(', ')+'. Review in BGG sync.',act:['Go to sync']},
+ {id:'a4',lvl:'info',cat:'Data quality',t:'Wanted vs pledged: DECKO',m:'BGG has DECKO as Want in Trade / Want to Buy, but you pledged DECKO: Pistachio on Gamefound (Oct 13). Drop the want flag?',act:['Drop want flag','Keep']},
+ {id:'a5',lvl:'info',cat:'Multiple copies',t:'4 titles appear twice on BGG',m:'La Granja, On Mars, Lorenzo il Magnifico, Terra Mystica: Big Box. SwapMeep treats them as copy 1 & 2 — confirm they are real extra copies.',act:['They are real copies','Merge']},
+ {id:'a6',lvl:'info',cat:'Data quality',t:'For trade but not owned: Autobahn, Hegemony',m:'BGG lists them For Trade without the Own flag. Did they sell?',act:['Mark sold','Mark owned']},
+ {id:'a7',lvl:'info',cat:'Might be delivered',t:'Agricola Special Edition & Distilled: Cocktails',m:'Last email was "Preparing for shipping" (Aug 26 / Jun 5). No delivery email found.',act:['Mark both delivered','Still waiting']},
+];
+
+/* ===================== REVIEWERS (real) =====================
+ Scores: each reviewer's own public BGG rating (BGG accounts TomVasel, ZeeGarcia, rahdo, harrisc, marLONE), read 2026-11-17.
+ Videos: YouTube search results ("<game> board game review"), real video IDs, titles, ages and view counts as of 2026-11-17. */
+const REVIEWERS={
+ bgg:{name:'BGG community',kind:'bgg',color:'#3f3a8f',note:'BGG average rating (all users)'},
+ tom:{name:'Tom Vasel',kind:'person',channel:'The Dice Tower',bggUser:'TomVasel',color:'#b91c1c',note:'Dice Tower · BGG ratings (3,564 read)'},
+ zee:{name:'Zee Garcia',kind:'person',channel:'The Dice Tower',bggUser:'ZeeGarcia',color:'#d97706',note:'Dice Tower · BGG ratings (1,193 read)'},
+ rahdo:{name:'Rahdo',kind:'person',channel:'Rahdo Runs Through',bggUser:'rahdo',color:'#0e7490',note:'Rahdo Runs Through · BGG ratings (311)'},
+ susd:{name:'Shut Up & Sit Down',kind:'channel',channel:'Shut Up & Sit Down',color:'#be185d',note:'YouTube videos · no numeric scores'},
+ npi:{name:'No Pun Included',kind:'channel',channel:'No Pun Included',color:'#4d7c0f',note:'YouTube videos · no numeric scores'},
+ bgco:{name:'BoardGameCo',kind:'channel',channel:'BoardGameCo',color:'#1d4ed8',note:'YouTube videos · no numeric scores'},
+ bgh:{name:'Board Game Hangover',kind:'channel',channel:'Board Game Hangover',color:'#7c3aed',note:'YouTube videos · no numeric scores'},
+ byp:{name:'Before You Play',kind:'channel',channel:'Before You Play',color:'#0f766e',note:'Playthrough & review videos'},
+ mvm:{name:'Man vs Meeple',kind:'channel',channel:'Man vs Meeple',color:'#9a3412',note:'YouTube videos'},
+ hc:{name:'Heavy Cardboard',kind:'channel',channel:'Heavy Cardboard',color:'#374151',note:'Teach & play-through streams'},
+ wip:{name:'Watch It Played',kind:'howto',channel:'Watch It Played',color:'#2563eb',note:'How-to-play videos'},
+ mu:{name:'Meeple University',kind:'howto',channel:'Meeple University',color:'#15803d',note:'How-to-play videos'},
+ gr:{name:'Gaming Rules!',kind:'howto',channel:'Gaming Rules!',color:'#a16207',note:'How-to-play & reviews'},
+ marlon:{name:'Marlon',kind:'friend',user:'marlon',bggUser:'marLONE',color:'#1f8a5b',note:'Friend · his BGG ratings (202)'},
+ harris:{name:'Harris',kind:'friend',user:'harris',bggUser:'harrisc',color:'#2f6fed',note:'Friend · his BGG ratings (18)'},
+};
+const RATINGS={
+ tom:{"Brass: Birmingham":5,"Ark Nova":10,"Dune: Imperium":9.5,"Dune: Imperium – Rise of Ix":9.5,"Gaia Project":7,"Ark Nova: Marine Worlds":10,"The Castles of Burgundy":7.5,"Concordia":8.5,"Endeavor: Deep Sea":9,"Galactic Cruise":8.5,"Andromeda's Edge":8.5,"Castle Combo":8,"Finspan":8.5,"Compile: Main 1":6,"Critter Kitchen":8,"Container":4,"Autobahn":6,"Black Angel":7,"Blue Lagoon":7.5,"City Hall":5,"Clans of Caledonia":8,"Coimbra":8,"Dinosaur Island":9,"Dune":7,"Flick 'em Up!":8.5,"7 Wonders Duel":9,"Clank! Legacy: Acquisitions Incorporated":10,"Civolution":9,"Flip 7":8,"Cascadia":7,"Azul":7,"Everdell":7,"Dead Cells: The Rogue-Lite Board Game":6,"Agricola":8,"Concordia Venus":8,"Arborea":9,"Darwin's Journey":8,"Distilled":8.5,"Eternal Decks":6,"A Feast for Odin":9,"Dune: Imperium – Uprising":9,"Dice Throne: Season One":7},
+ zee:{"Dune: Imperium":8,"The Castles of Burgundy":7.5,"Concordia":7,"Harmonies":7,"Endeavor: Deep Sea":9,"Castle Combo":9.5,"Finspan":8,"Container":4,"Heat: Pedal to the Metal":8,"Black Angel":7.5,"Coimbra":6,"Dune":4,"Flick 'em Up!":5,"7 Wonders Duel":9.5,"Flip 7":7,"Cascadia":8,"Azul":8,"Everdell":7,"Agricola":4,"Distilled":7,"Endeavor: Age of Sail":8},
+ rahdo:{"Ark Nova":8.84,"The Castles of Burgundy":9.9,"Concordia":8.1,"Castle Combo":8.75,"Moon Colony Bloodbath":8.53,"It's a Wonderful World":8.37,"London (Second Edition)":8.36,"The Manhattan Project: Energy Empire":9.38,"Planet Unknown":9.5,"Wingspan":8.87,"Cascadia":8.93,"Lost Ruins of Arnak":8.62,"Agricola":8.69,"Arborea":8.66,"Tzolk'in: The Mayan Calendar":8.78,"A Feast for Odin":8.69},
+ harris:{"Brass: Birmingham":10,"Ark Nova":10,"Dune: Imperium":10,"Gaia Project":9,"SETI: Search for Extraterrestrial Intelligence":10,"Through the Ages: A New Story of Civilization":9,"Scythe":7.5,"Puerto Rico 1897: Special Edition":10,"7 Wonders Duel":9,"Terra Mystica":9,"Viticulture Essential Edition":9,"Wingspan":8,"Agricola":9},
+ marlon:{"Brass: Birmingham":10,"Ark Nova":9,"Terraforming Mars":6,"Spirit Island":7,"Gaia Project":8,"Slay the Spire: The Board Game":8,"Scythe":8,"Concordia":6,"Harmonies":8,"Lorenzo il Magnifico":8,"Coimbra":8,"Pandemic Legacy: Season 1":7,"7 Wonders Duel":7,"Clank! Legacy: Acquisitions Incorporated":8,"Terra Mystica":8,"Viticulture Essential Edition":8,"Marvel Champions: The Card Game":8,"Inventions: Evolution of Ideas":8,"Primal: The Awakening":10,"Too Many Bones":8,"Reef":7,"Yamataï":7,"Tiny Epic Western":6,"Word on the Street":6,"Wingspan":8,"Azul":7,"Everdell":7,"Splendor":7}
+};
+// channel → [videoId, title, age, views]
+const VIDEOS={
+"Brass: Birmingham":{"The Dice Tower":["5f6HqzVDlzc","Brass: Birmingham Review - with Tom Vasel","7y ago","132,395"],"Shut Up & Sit Down":["e3efv2HkjDI","Brass: Birmingham - Shut Up & Sit Down Review","8y ago","638,778"],"BoardGameCo":["yc_f0VvGjGQ","Brass Birmingham & Lancashire - Review & Which One I Prefer","4y ago","22,861"],"Rahdo Runs Through":["hv2gnXnGyx0","Brass: Birmingham | Rahdo's Final Thoughts","7y ago","32,782"],"Watch It Played":["Lzxf4tfq9as","Brass: Birmingham - How To Play","8y ago","881,977"]},
+"Ark Nova":{"Board Game Hangover":["jgBIyulb71o","Ark Nova Board Game Review","4y ago","40,410"],"Shut Up & Sit Down":["QNgr-ET0buQ","'Zoo Tycoon: The Board Game?' Ark Nova Review","4y ago","260,067"],"The Dice Tower":["DOz2NLD5WOI","The 4 Squares Review - Ark Nova","4y ago","178,398"],"No Pun Included":["SHrT-PHvIhk","Ark Nova Review","4y ago","85,354"],"Before You Play":["xKiklsZnkoo","Ark Nova - Playthrough & Review","4y ago","284,052"],"BoardGameCo":["vrrKK2Uu270","Ark Nova Review - I Kept Trying To Love This One","2y ago","14,589"]},
+"Dune: Imperium":{"Board Game Hangover":["TlgsJ2Qeh-o","Dune Imperium Review - Is Dune Board Game a Must-Have?","5y ago","40,863"],"Before You Play":["fKv_2ZnyVi0","Dune Imperium - Playthrough & Review","5y ago","167,584"],"Shut Up & Sit Down":["kiXL251bdmQ","Dune: Imperium Review - A SU&SD Dust-Up","5y ago","323,458"],"The Dice Tower":["xg1206Cagpw","The 4 Squares Dune: Imperium Review","6y ago","129,408"],"Watch It Played":["nvX9EYxQEfY","Dune: Imperium - How To Play","6y ago","790,818"]},
+"Dune: Imperium – Uprising":{"BoardGameCo":["7HdPDMrPXHo","Dune: Imperium Uprising Review - It's Just Straight Up Better","8d ago","18,499"]},
+"Terraforming Mars":{"Shut Up & Sit Down":["TiswoYwwjnI","Terraforming Mars - Shut Up & Sit Down Review","9y ago","810,846"],"Watch It Played":["n3yVpsiVwL8","Terraforming Mars - How To Play","7y ago","1,101,106"],"No Pun Included":["ZhVZFpMG0zk","Terraforming Mars Review - Bears. On Mars.","8y ago","43,012"]},
+"Spirit Island":{"Shut Up & Sit Down":["Qj2OTrksMuY","SU&SD Review: Spirit Island!","4y ago","347,146"],"Board Game Hangover":["5tuykNJLe7o","Spirit Island Board Game Review","5y ago","28,747"],"No Pun Included":["sPAE0cr5eno","Spirit Island Review - Colonial Boogaloo","9y ago","115,561"],"BoardGameCo":["jmd8T4ta2w4","Spirit Island Review - Repelling Invaders, One Epic Power At A Time","5y ago","19,183"],"Before You Play":["nvOJ2VDZMww","Spirit Island - Playthrough & Review (Beginner Setup)","5y ago","232,277"],"The Dice Tower":["MG20YlfD3AA","Spirit Island Review - with Felipe","4y ago","10,052"],"Meeple University":["DidCVz-XKrI","Spirit Island Board Game - How to Play","6y ago","64,099"]},
+"Gloomhaven: Jaws of the Lion":{"The Dice Tower":["_v-Usp4grog","Gloomhaven: Jaws of the Lion Review - with Tom Vasel","6y ago","251,716"],"Watch It Played":["sCpQqrCiTDs","Gloomhaven: Jaws of the Lion - How To Play - Part 1","6y ago","838,078"]},
+"Gaia Project":{"The Dice Tower":["W6AP7hdYU9M","Gaia Project Review - with Tom Vasel","8y ago","125,764"],"No Pun Included":["KPDi7ejbIAQ","Gaia Project Review - Space Me Baby One More Time","8y ago","67,836"],"Before You Play":["bEUBmkUlbH4","Gaia Project - Playthrough & Review","5y ago","82,353"]},
+"SETI: Search for Extraterrestrial Intelligence":{"The Dice Tower":["Dq6hIdfs43I","SETI Review - SETI in my Spaghetti","2y ago","64,269"],"Board Game Hangover":["0Wsym2j_JM8","Why SETI is the Board Game You NEED to Discover! Board Game Review","1y ago","29,821"],"BoardGameCo":["T_qHM0-PyqE","SETI Review - Exploring Space Is Long...But Worth It","1y ago","10,380"],"Gaming Rules!":["hxO_WEWyUsg","SETI - Review and round the table discussion","2mo ago","4,372"]},
+"Slay the Spire: The Board Game":{"Board Game Hangover":["VEYBzu7VCAc","Slay the Spire Board Game Review","2y ago","35,674"],"The Dice Tower":["Gqk66NPze4k","Slay the Spire Review: Less RAM, More Fam","2y ago","85,198"],"Rahdo Runs Through":["N-YRE5nLAzc","Slay The Spire: The Board Game ►►► Shea's Final Thoughts","2y ago","6,124"]},
+"Slay the Spire: Downfall":{"BoardGameCo":["rJyEUq1BobU","Slay the Spire: The Board Game - Downfall Review - The Bosses Have Had Enough!","7mo ago","34,730"]},
+"The Castles of Burgundy":{"BoardGameCo":["UnbAMJt0QCQ","The Castles of Burgundy Review - I've Had This Game For 10 Years","4y ago","31,499"],"No Pun Included":["D0CGjB5QTeU","Castles of Burgundy Review - Not Actually About Castles","9y ago","53,823"],"The Dice Tower":["cQkAxU9I0wM","Castles of Burgundy Review - with Tom Vasel","15y ago","178,460"],"Watch It Played":["UVa31MPbm6g","The Castles Of Burgundy - How To Play","5y ago","422,551"]},
+"The Lord of the Rings: Duel for Middle-earth":{"The Dice Tower":["QsQ2BxnmMSw","The Lord of the Rings: Duel for Middle-Earth Review: The One Ring for Two","2y ago","73,464"],"Shut Up & Sit Down":["ktqOp-vYAc8","Lord of the Rings, in 20 Mins? (SU&SD Review Duel for Middle-Earth)","2y ago","164,629"],"Watch It Played":["awjEOjo3LTU","The Lord Of The Rings: Duel For Middle-earth - How To Play","2y ago","193,293"],"BoardGameCo":["jHqOeZ5GdcQ","The Lord of the Rings: Duel for Middle-Earth Review","2y ago","9,005"]},
+"Through the Ages: A New Story of Civilization":{"Shut Up & Sit Down":["aUxAVjiO0Qg","Through The Ages - Shut Up & Sit Down Review","9y ago","239,414"],"Rahdo Runs Through":["KGyydTieQUk","Through the Ages | Rahdo's Final Thoughts","13y ago","24,581"],"Gaming Rules!":["qfotOEHxFTk","Through the Ages - How to Play","11y ago","277,082"]},
+"Eclipse: Second Dawn for the Galaxy":{"Shut Up & Sit Down":["oO-YqmlY9XE","Eclipse: Second Dawn for the Galaxy Review - A Plastic Classic","5y ago","880,042"],"Rahdo Runs Through":["0cvo0kaV34E","Eclipse: Second Dawn for the Galaxy | Shea's Final Thoughts","5y ago","13,412"]},
+"Nemesis":{"Board Game Hangover":["29OZ2_bLZVA","Nemesis Board Game Review | Sci-Fi Horror In a Box","5y ago","36,705"],"Shut Up & Sit Down":["SKbEBrWjWzY","Nemesis: In space, no-one can hear you scheme (SU&SD Review)","6y ago","675,674"],"The Dice Tower":["D90mONgc3uU","Nemesis Review - with Tom Vasel","7y ago","220,517"]},
+"Scythe":{"Board Game Hangover":["pxhJV3cF_30","Scythe Board Game Review","5y ago","41,687"],"The Dice Tower":["fNHPLX4IU9A","Scythe Review - with Tom Vasel","10y ago","478,547"],"Shut Up & Sit Down":["Gbakt8dfV9w","Scythe - Shut Up & Sit Down Review","9y ago","850,944"],"No Pun Included":["HXA00ZCzSZ4","Scythe - A Review That Went a Thousand Miles","10y ago","178,909"],"Before You Play":["uRFRqCmbAvk","Scythe board game - Playthrough & Review","6y ago","190,290"]},
+"Concordia":{"Shut Up & Sit Down":["X9u6IuoIPUA","Concordia - Shut Up & Sit Down Review","10y ago","471,809"],"The Dice Tower":["VEH8nOyFQgw","Concordia Review - with Tom Vasel","12y ago","141,585"],"Gaming Rules!":["5dEyVWn0fog","Concordia - A Gaming Rules! review","7y ago","20,892"]},
+"The Lord of the Rings: Fate of the Fellowship":{"The Dice Tower":["lehRbltDRMo","The Lord of the Rings: Fate of the Fellowship Review - Speak Friend and Cooperate","1y ago","74,239"],"Watch It Played":["OhCfFQVlT7M","The Lord Of The Rings: Fate Of The Fellowship - How To Play","1y ago","286,179"],"BoardGameCo":["YwRZgDo90bE","Fate of the Fellowship Review - Amazingly Fun But Not Without Flaws","1y ago","32,235"],"Meeple University":["f1liSrkk5Jg","Fate of the Fellowship - Start Playing in 13ish Minutes","1y ago","43,747"]},
+"Harmonies":{"Board Game Hangover":["7xS89isaWwA","Harmonies Board Game Review","2y ago","23,460"],"The Dice Tower":["tijIOEH0bmo","Harmonies Review: In Harmony With Nature","2y ago","59,102"],"BoardGameCo":["Z4hox6i3Q4Q","Harmonies Review - Everything Working Together","2y ago","5,584"],"Watch It Played":["NlygiFc_xNY","Harmonies - How To Play","1y ago","155,408"]},
+"Endeavor: Deep Sea":{"The Dice Tower":["WyMxBVGWZck","Endeavor: Deep Sea Review: Depth to Fun Ratio","1y ago","53,907"],"Before You Play":["2lgZIyxYUIQ","Endeavor: Deep Sea - Gamefound How To Play","3y ago","73,001"],"BoardGameCo":["QRUGSzzLEhQ","Endeavor Deep Sea Review - A Classic Returns....Again","3y ago","22,123"]},
+"Galactic Cruise":{"The Dice Tower":["bhZakgGpBvQ","Galactic Cruise Review: Space Truckin'","1y ago","41,451"],"No Pun Included":["aFz8m5-X10g","Don't worry, Galactic Cruise is VERY safe | Our review","1y ago","61,855"],"BoardGameCo":["9RYu1asuKGs","Galactic Cruise Review - See The Universe They Said","2y ago","18,063"]},
+"Galactic Cruise: Achievements Exp. & Reprint":{"Rahdo Runs Through":["zuLV2YUSJ6s","►►► I would not play without GALACTIC CRUISE: ADVANCEMENTS & ACHIEVEMENTS","8mo ago","3,290"]},
+"Andromeda's Edge":{"The Dice Tower":["4eA7XXv-qks","Andromeda's Edge Review: No Holds Barred Spiral Galaxy","2y ago","64,491"],"Board Game Hangover":["ZmqH0vRzlo0","Andromeda's Edge Board Game Review","1y ago","30,848"],"Meeple University":["G7otm0cQIWY","Andromeda's Edge - How to Play Including Variant Rules","2y ago","53,901"]},
+"Castle Combo":{"The Dice Tower":["LQDVb4eJb8E","Castle Combo Review: It's Got Combos! And...well...","2y ago","47,061"],"BoardGameCo":["4elSlKMKRI4","Castle Combo Review - Move Peasant!","1y ago","5,977"],"Rahdo Runs Through":["-lSKGA4nVyg","Castle Combo ►►► How does it play?","2y ago","11,936"]},
+"Hot Streak":{"The Dice Tower":["UqcuhxtyZ5U","Hot Streak Review: Streaking at the Stadium","1y ago","54,197"]},
+"Shackleton Base: A Journey to the Moon":{"The Dice Tower":["Ynpps1NNNO4","Shackleton Base Review: Modules. Also, Modules.","1y ago","25,788"],"BoardGameCo":["E3EfJcN6tCs","Shackleton Base Review - Crunchy, Variable & Perfect In Every Way","1y ago","8,703"],"Before You Play":["gF47jgsqMXA","Shackleton Base - Teach & Playthrough","1y ago","32,933"]},
+"Finspan":{"The Dice Tower":["uqnhQ2LYsrM","Finspan Review: Schools Trout For Summer","1y ago","56,608"],"Watch It Played":["t-UaHY38SuY","Finspan - How To Play","1y ago","159,099"],"BoardGameCo":["_Cs91eWTaJE","Finspan Review - Birds, Dragons and....Fish?","1y ago","8,573"],"Man vs Meeple":["fQHY2IlnmZ4","FINSPAN - We Just Played It!","1y ago","11,993"]},
+"Moon Colony Bloodbath":{"Board Game Hangover":["bQNEjLdQUoE","Moon Colony Bloodbath (And Why You Need to Play It) Board Game Review","1y ago","26,029"],"The Dice Tower":["9LTrMcOaugc","Moon Colony Bloodbath Review: Bloodbath and Beyond","1y ago","37,609"]},
+"Puerto Rico 1897: Special Edition":{"The Dice Tower":["v9ptUMDPTww","Puerto Rico 1897: Special Edition Review: Wake Up and Smell the Coffee","8mo ago","32,992"],"Watch It Played":["nmWqMgpRiWg","Puerto Rico 1897 - How To Play","3y ago","87,628"],"BoardGameCo":["WbjTYnOSlfM","Puerto Rico Special Edition Review - I'd Ship That","1y ago","10,890"]},
+"Container":{"The Dice Tower":["JlJ2kUTK7QI","Container Review: Cargo Ship? No, Car Go Road","1mo ago","26,425"],"Before You Play":["Z41gu5Mj6NA","Container (2026 ed) - Teach & Playthrough","5mo ago","31,638"],"Shut Up & Sit Down":["88xO8wtMyoM","Container - Shut Up & Sit Down Review (original edition)","8y ago","443,986"]},
+"Black Rose Wars: Rebirth":{"BoardGameCo":["SFxkUAEE5AY","Black Rose Wars Rebirth Review - The Lodge Returns","5y ago","17,458"],"The Dice Tower":["vDxHtgWX7IM","Black Rose Wars Review - with Zee Garcia","5y ago","35,247"]},
+"Heat: Pedal to the Metal":{"Board Game Hangover":["hmKS5jwNiPs","Heat Board Game Review","3y ago","22,246"],"The Dice Tower":["zpIC-7c58CA","Heat Review: Days of Wonder Does Days of Thunder","4y ago","105,191"],"Watch It Played":["Ychy0Tgegjk","Heat: Pedal To The Metal - How To Play","3y ago","491,361"]},
+"Kanban EV":{"The Dice Tower":["ZKCnGo-fdwE","Kanban EV Review with Chris and Wendy Yi","5y ago","24,005"],"No Pun Included":["aq3fl0VCpHg","Kanban EV Review - Full Spoilers (for the film Christopher Robin)","5y ago","59,798"],"Before You Play":["0V0diNJ3Zo0","Kanban EV + Speed Charger Expansion - Playthrough & Review","5y ago","80,827"]},
+"On Mars":{"No Pun Included":["y97TdIpy88w","On Mars Review - As Complex as Board Games Get","6y ago","115,447"],"Before You Play":["ARJQlLibQcI","On Mars - Playthrough & Review","6y ago","132,504"],"The Dice Tower":["24_fKE5m0Zk","On Mars Review - with Chris and Wendy Yi","5y ago","24,703"],"Heavy Cardboard":["nEvjK-jjkLI","On Mars (revisited) - 3p Teaching, Play-through & Discussion","Streamed 2mo ago","11,011"]},
+"Lorenzo il Magnifico":{"The Dice Tower":["Im-0SR1Tpmg","Lorenzo il Magnifico Review - with Tom Vasel","9y ago","75,369"],"Before You Play":["A1nGkzHXhsg","Lorenzo Il Magnifico - Playthrough & Review","3y ago","35,247"],"BoardGameCo":["I1UMkPetakQ","Lorenzo Il Magnifico & Expansion Review","4y ago","10,206"],"Rahdo Runs Through":["sOPJbu-Hezo","Lorenzo il Magnifico Gameplay Runthrough","10y ago","48,274"],"Man vs Meeple":["y8M22cW30pQ","Lorenzo il Magnifico Review by Man Vs Meeple","9y ago","12,372"]},
+"Clans of Caledonia":{"The Dice Tower":["N9cFY2CWwSg","Clans of Caledonia Review - with Tom Vasel","9y ago","107,494"],"BoardGameCo":["woJwJMFFm3g","Clans of Caledonia Review","1y ago","8,730"],"Man vs Meeple":["gGP3QeFJIXE","Clans of Caledonia Review by Man Vs Meeple","9y ago","25,321"]},
+"Coimbra":{"The Dice Tower":["ddFhhx5NctY","Coimbra Review - with Tom Vasel","8y ago","78,226"],"Man vs Meeple":["zc8sE4inzVE","Coimbra Review by Man vs Meeple","8y ago","12,811"],"Rahdo Runs Through":["bi1dSgiYL8o","Coimbra Gameplay Runthrough","8y ago","36,645"]},
+"Dinosaur Island":{"The Dice Tower":["iHDoHJXoeoc","Dinosaur Island Review - with Tom Vasel","8y ago","143,772"],"Watch It Played":["dY3gdGNP698","Dinosaur Island - How To Play","8y ago","198,515"]},
+"Hegemony: Lead Your Class to Victory":{"Board Game Hangover":["ImiQ4Coi3jc","Hegemony Board Game Review - Game of The Year","3y ago","59,870"],"The Dice Tower":["lo2MgwIYgO8","Hegemony Review","3y ago","68,315"],"BoardGameCo":["zGTe_m2hOMQ","Hegemony Review - A Strongly Asymmetric Economic Game","5y ago","28,073"],"Heavy Cardboard":["8PVAJcXMRcw","Hegemony - 4p Teaching & Play-through","Streamed 4y ago","65,816"]},
+"It's a Wonderful World":{"The Dice Tower":["IYuF43DCzBs","It's a Wonderful World Review - with Tom Vasel","7y ago","100,256"],"Before You Play":["IhDRJrMs6_E","It's a Wonderful World - Playthrough & Review","6y ago","48,233"],"BoardGameCo":["NELZ3wCGL1k","It's A Wonderful World Review","4y ago","5,277"]},
+"Kemet":{"Shut Up & Sit Down":["5s-K0TcoYPY","Kemet - Shut Up & Sit Down Review","9y ago","196,394"]},
+"Orléans":{"The Dice Tower":["yL2ncv0faAc","Orléans Review - with Tom Vasel","11y ago","102,958"],"Watch It Played":["HlI3vOoZHmM","Orleans - How To Play","10y ago","182,663"],"Gaming Rules!":["GPi9qI4fyao","Orleans (and expansions) - A Gaming Rules! Review","7y ago","12,417"]},
+"Pandemic Legacy: Season 1":{"Shut Up & Sit Down":["J0dDTbA1fq8","Pandemic Legacy - Shut Up & Sit Down Spoiler-Free Review","10y ago","240,068"]},
+"Clank! Legacy: Acquisitions Incorporated":{"Man vs Meeple":["w2wrwuDe9ck","Clank! Legacy: Acquisitions Incorporated Review by Man Vs Meeple","7y ago","23,123"],"Rahdo Runs Through":["ElmkvvKqQkc","Rahdo Runs Through►►► Clank! Legacy","7y ago","37,659"]},
+"Marvel Champions: The Card Game":{"Shut Up & Sit Down":["MRl70CQy83A","Marvel Champions Review - Gambit-Level Cardplay","6y ago","420,894"],"Board Game Hangover":["O3J-1DE5zIY","Marvel Champions Card Game Review","5y ago","15,283"],"The Dice Tower":["-3OwKzr03Co","Marvel Champions: The Card Game Review - with Tom Vasel","7y ago","157,674"],"No Pun Included":["kkOWC8jEh04","Marvel Champions Review - Missing a Gem","6y ago","70,728"],"BoardGameCo":["9_mvg4_T_ek","Marvel Champions - A BoardGameCo Review","6y ago","2,387"]},
+"Civolution":{"The Dice Tower":["OsNGPPndMzs","Civolution Review - It's a Revolization","1y ago","47,748"],"BoardGameCo":["XiggwM2G2kY","Civolution Review - So Many Actions, Not Enough Dice","1y ago","7,419"],"Heavy Cardboard":["68MIq6Tu1vA","Civolution (revisited) - 3p Play-through & Roundtable","Streamed 2mo ago","10,694"],"Gaming Rules!":["2F4q8OW1dco","How to Play Civolution - Official Tutorial video","2y ago","63,085"]},
+"Planet Unknown":{"The Dice Tower":["pbgBgNuAvCQ","Planet Unknown Review - with Tom Vasel","4y ago","77,438"],"Board Game Hangover":["TIXoyp2Ykcc","Planet Unknown Review","3y ago","14,790"]},
+"Primal: The Awakening":{"Board Game Hangover":["lvDEbIgz2iU","Primal: The Awakening Review I Too Many Miniatures?","2y ago","26,835"],"The Dice Tower":["u25Yw0YiyTs","Primal: The Awakening Review: Hey, Boss. Wanna Battle?","2y ago","31,561"],"BoardGameCo":["SkJUz7ECbiw","Primal: The Awakening Review - After All This Time, It Holds Up","2y ago","17,748"]},
+"Tiletum":{"The Dice Tower":["x51y3rCPz3Y","Tiletum Review: Going Full Tielt","4y ago","33,430"],"Rahdo Runs Through":["QTlDcCYL3o4","Tiletum | Rahdo's Final Thoughts","4y ago","13,017"]},
+"Too Many Bones":{"Shut Up & Sit Down":["Gr43RVRtv8s","Too Many Bones - Shut Up & Sit Down Review","7y ago","699,663"],"No Pun Included":["Qh3AneNEka4","A Review of Everything Too Many Bones","5y ago","156,241"],"The Dice Tower":["AWDGE04Ingk","Too Many Bones Review - with Tom Vasel","9y ago","139,018"],"BoardGameCo":["3iP4xF5N1yM","Too Many Bones Review - If I Could Only Keep One Game...","5y ago","43,525"]},
+"Wingspan":{"Shut Up & Sit Down":["JQnCvlfMvXY","Wingspan Review - Flock and Roll","6y ago","577,950"],"The Dice Tower":["sMalzj-6g7A","Wingspan Review - with Tom Vasel","7y ago","298,310"],"Watch It Played":["lgDgcLI2B0U","Wingspan - How To Play","7y ago","2,004,147"],"No Pun Included":["uqy37XLOGYo","Wingspan Board Game Review","7y ago","88,953"]},
+"Cascadia":{"Actualol":["YzUQdtzcyfM","Cascadia Review - I Was Wrong","5y ago","159,070"],"The Dice Tower":["9CDgRa_PYhY","The 4 Squares Review - Cascadia","5y ago","103,030"],"No Pun Included":["q60_qRAZLWM","Cascadia Review - American Animal","5y ago","52,833"],"Shut Up & Sit Down":["wC0vPdJs8uQ","Calico, Cascadia & Verdant - A Tricky Triple-Review","4y ago","181,957"]},
+"Sky Team":{"Board Game Hangover":["EGrTfx-6BmQ","Sky Team Board Game Review - The best 2-Player COOP game?","2y ago","31,898"],"The Dice Tower":["hDUQhmQzchs","Sky Team Review: Looks Like I Picked The Wrong Week To Stop Communicating","3y ago","66,103"],"BoardGameCo":["6couEcFhMcM","Sky Team Review","3y ago","8,384"]},
+"Brass: Pittsburgh":{"BoardGameCo":["sqjOG-n8xM4","Brass: Pittsburgh Review - Everything You Loved About Brass & More!","7mo ago","23,928"],"Before You Play":["tkCnIR9TW6c","Brass: Pittsburgh - Teach & Playthrough","7mo ago","67,499"],"The Dice Tower":["ROP0vQH2ECM","BRASS: Pittsburgh - DT Preview with Mark Streed","7mo ago","5,442"]},
+"Arborea":{"The Dice Tower":["rN5Kqu13CbU","Arborea Review: Will Your Brain Be As Busy As The Board?","3y ago","33,584"],"Heavy Cardboard":["onNNMYq6lZ8","Arborea - 4p Teaching & Play-through","Streamed 3y ago","10,239"]},
+"Distilled":{"The Dice Tower":["3mKHHVOmN0g","Distilled Review: A Barrel of Fun?","3y ago","51,978"],"BoardGameCo":["jp1VkzCzcPg","Distilled Review - A Tight Euro","5y ago","12,281"]},
+"Eternal Decks":{"The Dice Tower":["RN3jgCOvSmk","Eternal Decks Review: Is This Burning An Eternal Deck?","1y ago","43,939"],"Before You Play":["gOxzW5OOei0","Eternal Decks - Playthrough & Review","2mo ago","35,405"]},
+"Agricola":{"Shut Up & Sit Down":["8ojqjk5k9sA","The Top 100 Board Games of All Time: Agricola","2y ago","225,563"],"Before You Play":["z9pDmmLfpwQ","Agricola - Playthrough & Review","5y ago","119,038"],"The Dice Tower":["c7R7B83w3xY","Agricola Review - with Ryan Metzler","15y ago","145,483"]},
+"Watergate":{"Shut Up & Sit Down":["9zEt-QCqRTw","Watergate Review - A Tense, Two-Player Treat","6y ago","145,744"],"The Dice Tower":["8IEAalN2R0E","Watergate Review - with Tom Vasel","7y ago","42,748"],"No Pun Included":["iN9dWYLYvq8","Watergate Review - One of the Best Two Player Games","7y ago","44,609"],"Watch It Played":["6BQQyHA0g3Y","Watergate - How To Play","7y ago","108,784"]},
+"Flip 7":{"The Dice Tower":["Yfx5QAg1g7M","Flip 7 Review: Quick Take with Tom Vasel","2y ago","37,291"],"Watch It Played":["rX9BG34YOT0","Flip 7 - How To Play","1y ago","601,505"]},
+"Speakeasy":{"The Dice Tower":["LZa9RBrrbU0","Speakeasy Review: Spirited Away","11mo ago","33,235"],"Man vs Meeple":["1N0y7X7A_zU","Speakeasy Review - How Does This One Stack Up?","1y ago","18,721"],"Gaming Rules!":["xShivFRxmgE","How to Play Speakeasy - Official Tutorial video","9mo ago","35,591"]}
+};
+// prototype title → data title (editions / pledges that map to a base game)
+const ALIAS={"Planet Unknown (Deluxe)":"Planet Unknown","Agricola Special Edition":"Agricola","Concordia Special Edition":"Concordia","Through the Ages":"Through the Ages: A New Story of Civilization"};
+// who follows whom (per user, editable in the Reviewers screen)
+let FOLLOWS={harris:['bgg','tom','rahdo','susd','npi','marlon'],marlon:['bgg','zee','bgco','bgh','harris'],jules:['bgg','susd','wip'],ren:['bgg']};
+
+/* Image links (not copies): BGG game thumbnails from the cf.geekdo-images.com CDN, YouTube channel avatars and video thumbnails from YouTube's CDN. Loaded live by the browser when this file is opened locally. */
+const BGGIMG='https://cf.geekdo-images.com/';
+const THUMB={"Andromeda's Edge: Genesis":"n3gYugbvd_LHVynDhfoVbw__micro/img/ssXHXyIzvLcn587j9qcmGdbQ26g=/fit-in/64x64/filters:strip_icc()/pic7334483.jpg","Concordia":"CzwSm8i7tkLz6cBnrILZBg__micro/img/FQyxREkHBn7yTbGmBg7c44eLgaM=/fit-in/64x64/filters:strip_icc()/pic3453267.jpg","Galactic Cruise: Achievements Exp. & Reprint":"l-LMcklO683dyVlnRZS3mg__micro/img/GuQI0QXviTHgayi_9lnJxNW30qY=/fit-in/64x64/filters:strip_icc()/pic7556818.jpg","Endeavor Deep Sea: Uncharted Waters":"wIbevITv9W79ELP8rEZoKA__micro/img/ULbAxctwg1JPPFev5nhPYG70sPE=/fit-in/64x64/filters:strip_icc()/pic6996584.jpg","Agricola":"3L6ZtOll9W5O6-3-EwSMyw__micro/img/Wn26Qg2_qEkSs83PE-qNIGb0ScU=/fit-in/64x64/filters:strip_icc()/pic1899157.jpg","Distilled: Cocktails":"8YPBUoAlAvGSfcRTxr7EZQ__micro/img/KgBdSK9vB0rXL1O2VOmt6az7C9U=/fit-in/64x64/filters:strip_icc()/pic7104213.png","Brass: Birmingham":"x3zxjr-Vw5iU4yDPg70Jgw__micro/img/4Od3GYCiqptga0VbmyumPbJlBsU=/fit-in/64x64/filters:strip_icc()/pic3490053.jpg","Ark Nova":"SoU8p28Sk1s8MSvoM4N8pQ__micro/img/LSAi1pmhbTbWwtBrziutDOXzfdY=/fit-in/64x64/filters:strip_icc()/pic6293412.jpg","Dune: Imperium":"PhjygpWSo-0labGrPBMyyg__micro/img/mfU7-dEFnVyXJrF-BWAO0buexao=/fit-in/64x64/filters:strip_icc()/pic5666597.jpg","Terraforming Mars":"wg9oOLcsKvDesSUdZQ4rxw__micro/img/LUkXZhd1TO80eCiXMD3-KfnzA6k=/fit-in/64x64/filters:strip_icc()/pic3536616.jpg","Spirit Island":"kjCm4ZvPjIZxS-mYgSPy1g__micro/img/sRPer5FmBxyV527MY67P-gM7ukg=/fit-in/64x64/filters:strip_icc()/pic7013651.jpg","Dune: Imperium – Rise of Ix":"M6FiBz2SrUMgJyW8RAW1Tw__micro/img/xT7WYvPTzYINuPsVF8AEqvxkixc=/fit-in/64x64/filters:strip_icc()/pic6982671.jpg","Gloomhaven: Jaws of the Lion":"_HhIdavYW-hid20Iq3hhmg__micro/img/OdKjWiFsNvQAfJfXXSITttiozWE=/fit-in/64x64/filters:strip_icc()/pic5055631.jpg","Gaia Project":"hGWFm3hbMlCDsfCsauOQ4g__micro/img/odWj2bEnZi9dEcQQrOtYj1e0QLE=/fit-in/64x64/filters:strip_icc()/pic5375625.png","Ark Nova: Marine Worlds":"MBZVrviRAR8NbW6LyUYE-w__micro/img/g9CluJJBjstfT6MTQW038q4vVW0=/fit-in/64x64/filters:strip_icc()/pic7501708.jpg","SETI: Search for Extraterrestrial Intelligence":"_BUXOVRDU9g_eRwgpR5ZZw__micro/img/mVlVFSt_j8f6NhXXXmjPPkzyruc=/fit-in/64x64/filters:strip_icc()/pic8160466.jpg","Slay the Spire: The Board Game":"PQzVclEoOQ_wr4e1V86kxA__micro/img/umu_PR9o096pmOA2laSDPJ1ACiQ=/fit-in/64x64/filters:strip_icc()/pic8157856.png","The Castles of Burgundy":"VrNrk7XVU1hN0j1ZFhjcjw__micro/img/amDeAP7W8g0RKR9jyNX7PNT3DJA=/fit-in/64x64/filters:strip_icc()/pic4934938.jpg","The Lord of the Rings: Duel for Middle-earth":"EybxJlUc9rz7F7HVFLqsdw__micro/img/F1R-bIu9E6PWoyFAe5_0jn-R9U4=/fit-in/64x64/filters:strip_icc()/pic8378939.jpg","Through the Ages: A New Story of Civilization":"fVwPntkJKgaEo0rIC0RwpA__micro/img/77dZJpqtydc8TTecl0ReGF7iAVw=/fit-in/64x64/filters:strip_icc()/pic2663291.jpg","Eclipse: Second Dawn for the Galaxy":"Oh3kHw6lweg6ru71Q16h2Q__micro/img/vhB59zFDq3Kul0xbr3api2selZs=/fit-in/64x64/filters:strip_icc()/pic5235277.jpg","Nemesis":"4KSmlm59w0GwLIlgDnJDAQ__micro/img/sWkwLPbv89fyeXyKvWvrfD52tzw=/fit-in/64x64/filters:strip_icc()/pic8211747.png","Scythe":"7k_nOxpO9OGIjhLq2BUZdA__micro/img/ETplc22GdhlN5u0mppcDxSP8LVk=/fit-in/64x64/filters:strip_icc()/pic3163924.jpg","The Lord of the Rings: Fate of the Fellowship":"scw36iBIad7l-rGzxPGcGg__micro/img/zTllrRmMYLuMHXuPjpXUjzFFpDw=/fit-in/64x64/filters:strip_icc()/pic8662670.png","Harmonies":"A_XP2_VN3ugyqPhezowB_w__micro/img/XdSzhZW7L2RhkaGGHwHsf9DMeDs=/fit-in/64x64/filters:strip_icc()/pic8026369.png","Endeavor: Deep Sea":"wIbevITv9W79ELP8rEZoKA__micro/img/ULbAxctwg1JPPFev5nhPYG70sPE=/fit-in/64x64/filters:strip_icc()/pic6996584.jpg","Galactic Cruise":"l-LMcklO683dyVlnRZS3mg__micro/img/GuQI0QXviTHgayi_9lnJxNW30qY=/fit-in/64x64/filters:strip_icc()/pic7556818.jpg","Andromeda's Edge":"n3gYugbvd_LHVynDhfoVbw__micro/img/ssXHXyIzvLcn587j9qcmGdbQ26g=/fit-in/64x64/filters:strip_icc()/pic7334483.jpg","Castle Combo":"rGomBfj0FGrZM-w3h5HFWQ__micro/img/iTK40-kc4BOaJVi6UvjFa09d6n0=/fit-in/64x64/filters:strip_icc()/pic8250341.png","Hot Streak":"co36SqyPYlM1QwVW6XSwyQ__micro/img/NDS5JO8k1CIZrfNDIFwrAI2PMNE=/fit-in/64x64/filters:strip_icc()/pic8933083.jpg","Shackleton Base: A Journey to the Moon":"XE4S_nXyHVvld2BOrDmA7Q__micro/img/cM_nVlx84JssOUYqJ9VzO9J2Ks4=/fit-in/64x64/filters:strip_icc()/pic7897060.jpg","Finspan":"BBefMnVYBDS3EbJ9fPaC8A__micro/img/IwBoGYjkD3TqjauH7HH3x6FhPkY=/fit-in/64x64/filters:strip_icc()/pic8634453.jpg","Moon Colony Bloodbath":"KDrRxEKQMmHyM0QQ2ONX4Q__micro/img/RjnDXYSgA-T3PdHnIjH0cr2i4nA=/fit-in/64x64/filters:strip_icc()/pic8638247.jpg","Puerto Rico 1897: Special Edition":"ewNPD8vcrsXVfuVc9_E6hg__micro/img/Oy3PC3niT4KV3ElGbbHfy5w8V8s=/fit-in/64x64/filters:strip_icc()/pic8376834.jpg","Compile: Main 1":"KMSUmBs9elKj4qBMxGVFgw__micro/img/chn79zmLpX680k7CChGIvooXt2g=/fit-in/64x64/filters:strip_icc()/pic8778267.png","Skyrise":"wQNNMPNOm43VMYPAPpJdEA__micro/img/E106MCzmx_uc2M0O1WgfxnvXJyY=/fit-in/64x64/filters:strip_icc()/pic8160197.jpg","Critter Kitchen":"w72-A0u4uH2j_YqGwu4E0w__micro/img/ccmFahvgMFjquESpoT0Mom3iwQ4=/fit-in/64x64/filters:strip_icc()/pic7594267.jpg","Sweet Lands":"qmCyTIgGhdSON0bMUk8qjQ__micro/img/7VYVOmzaENIfF-8tgPfOeaDg254=/fit-in/64x64/filters:strip_icc()/pic8329173.jpg","Kelp: Shark vs Octopus":"iMtHHxutEtga5DiZDIbgJg__micro/img/QxwrkVM6OWpw2QOxXE6i5fFuoTI=/fit-in/64x64/filters:strip_icc()/pic7493386.jpg","Container":"YbUs3F73ptqXzIOC69-q1Q__micro/img/GDibN1y8KejxE6jUPE4nkkXKHKo=/fit-in/64x64/filters:strip_icc()/pic332933.jpg","Tenby":"54cEtI6QTYnL7zHNsXfPWA__micro/img/VStET6fRnibCSxSSRVIFd1Mrotw=/fit-in/64x64/filters:strip_icc()/pic9876233.png","ORBIT":"0x7TCH7bCynSQqW3GVc8UA__micro/img/-1h0Hm81Y8q-AytF-FammxnrJ6Q=/fit-in/64x64/filters:strip_icc()/pic8478397.png","Madcala":"RJAaC_TZLM0lT-RWGMXn-A__micro/img/RUHGTS_L5P0316zaYwWNPB7FUHs=/fit-in/64x64/filters:strip_icc()/pic9344875.png","Black Rose Wars: Rebirth":"cwQZOU3cNOTta6nuT77byg__micro/img/jgLHO3GF8jliuS-mvs1lcOfUxHE=/fit-in/64x64/filters:strip_icc()/pic6279361.png","Vinhos: Deluxe Edition":"JuyN9UOenAG_BlO-APPpdw__micro/img/KdJxATUknU5Dd58Rg5o25DtWovM=/fit-in/64x64/filters:strip_icc()/pic2649446.jpg","Heat: Pedal to the Metal":"-vOrd4bOspibyohYExLqWg__micro/img/bcHg_0mMkgMaBp9Sz1gxJtHtaHw=/fit-in/64x64/filters:strip_icc()/pic6940449.png","Kanban EV":"L2Wn-zUqkcHgqvwvY212Ig__micro/img/2pY9Wo185ehuYO7Mb0gTDpdww74=/fit-in/64x64/filters:strip_icc()/pic4924232.jpg","La Granja":"ufUK_7N_13rYhsIurbbtzg__micro/img/PZzTjwB7wFkr6oJINX9PJQAcAQI=/fit-in/64x64/filters:strip_icc()/pic2031777.jpg","On Mars":"Nm0Iw8NoiM9V8IsifimGBw__micro/img/HQNReYu8QkZqD4dbZeWg3cQrkv0=/fit-in/64x64/filters:strip_icc()/pic4357658.jpg","Lorenzo il Magnifico":"8G6GkImjt0F_L5aYb8fmtQ__micro/img/kDuDqsd-uzh0n9aqlsEoHXZbgfY=/fit-in/64x64/filters:strip_icc()/pic3175535.jpg","World Wonders":"GGi5aUL1dVQIrytxgXow4g__micro/img/WEgU6DZqeGUDRo9YJlTHWXaFRnY=/fit-in/64x64/filters:strip_icc()/pic7604558.png","7 Wonders: Catan":"F99j2tOu97d_ekn3D1GGAQ__micro/img/oE_ADq2pEBv0lai09oNgyljjKIE=/fit-in/64x64/filters:strip_icc()/pic1115825.jpg","Alhambra: Big Box Special Edition":"hH6PgZg9RoseRGnpBebvcQ__micro/img/xYby0VYfBE55Mf9iQiKdVcdEOi4=/fit-in/64x64/filters:strip_icc()/pic3589564.jpg","Autobahn":"rEHUfF9UeA6lY6EvRLgBIg__micro/img/qrKgeihuR4PnBU3-rMZZ9Z7ChmI=/fit-in/64x64/filters:strip_icc()/pic6447828.jpg","Black Angel":"UsG5d8U0wGFJLKctASkWTQ__micro/img/cUM7zklW_PsbNptjNDDmHCrNPog=/fit-in/64x64/filters:strip_icc()/pic4830520.jpg","Blue Lagoon":"wFggDB9IbU47-drR4GUQBw__micro/img/0Cpr7WGnX3O4-06hqG0qSyPpJAQ=/fit-in/64x64/filters:strip_icc()/pic4122624.png","City Hall":"7K03WSXgpow6Kw0V7MhHdw__micro/img/QBFl_2v4Pv7NlWz0P-sYkq_u6cM=/fit-in/64x64/filters:strip_icc()/pic4995890.jpg","Clans of Caledonia":"SPuwc6RJ6y4PnTH36Pegsg__micro/img/wWI0kOjt4L4TOOV_Dn2BLthq5QQ=/fit-in/64x64/filters:strip_icc()/pic3511783.png","Coimbra":"JJFHx0RiUBYdy9bHAgVSuA__micro/img/DCHbPk0jG0PdiVSloHcLQANF9Tc=/fit-in/64x64/filters:strip_icc()/pic3956079.jpg","Dinosaur Island":"hLJv1A1TwrMrLLIJhVpKVA__micro/img/2q4ZXl47RT-ehH3NTN5WBzp--BI=/fit-in/64x64/filters:strip_icc()/pic3429338.png","Dune":"2fgPg6Be--w97zoycObUgg__micro/img/2GjO7kqAKxAlDzsn93UB7mM9lTc=/fit-in/64x64/filters:strip_icc()/pic4815198.jpg","Flick 'em Up!":"uTrqB91Kzvqtb4Ophk1BPw__micro/img/XedZ0y08cE_t-sfVE6uS1MzNLR8=/fit-in/64x64/filters:strip_icc()/pic5095159.jpg","Hegemony: Lead Your Class to Victory":"DCLgJlrvB-EqL6A3WgQLMQ__micro/img/j_LPta_lgRrN8Rrs9Rxt_d3Hysc=/fit-in/64x64/filters:strip_icc()/pic5715770.jpg","It's a Wonderful Kingdom":"YMJnUYqIXrOEiqVOqfhWQw__micro/img/Rfid8gO3TgIG5jb3MFzTiazP5c4=/fit-in/64x64/filters:strip_icc()/pic6929415.jpg","It's a Wonderful World":"od4vDTdXGPSVc-kjLqM11w__micro/img/ZtJTSG15QyoG9zz0XZ9BKTBqb84=/fit-in/64x64/filters:strip_icc()/pic4651175.jpg","Kemet":"RmZjhy7_6REp8IaXh9Zqwg__micro/img/JhmgQqmj1m5K7EKHBExVgFHKUf4=/fit-in/64x64/filters:strip_icc()/pic3979527.jpg","King's Vineyard":"OUYiOQk93pedK0UAQBS65g__micro/img/YNam7pSN4nVA4KKbBGTX0q4HFlo=/fit-in/64x64/filters:strip_icc()/pic1165309.jpg","London (Second Edition)":"TMbEUs1GZpO96P5ubsqQew__micro/img/u9-pXHW4IgfMt0SAwpd36PjjY_g=/fit-in/64x64/filters:strip_icc()/pic3693999.jpg","Luna":"tMYWtENCa6qdHg3DLIDqcw__micro/img/rbOMHuR_ii1S7Q115QgS3DGPecU=/fit-in/64x64/filters:strip_icc()/pic2538939.png","Machi Koro":"_lI2eUDHfesfe5SswJiFAg__micro/img/Y39W_jja7SpxS51fT8oZ15UrkiI=/fit-in/64x64/filters:strip_icc()/pic4783831.png","The Manhattan Project: Chain Reaction":"YqmBrUSSNeqFao71khs9vw__micro/img/b35YeNp9--yU2-DvT5h5P5EvZgM=/fit-in/64x64/filters:strip_icc()/pic3099445.jpg","The Manhattan Project: Energy Empire":"-aaspZ2Oq1VuAADvbUoeww__micro/img/sXkK1dKZLsunRcdS0stDOeer8jg=/fit-in/64x64/filters:strip_icc()/pic3048617.jpg","Mercado de Lisboa":"_bw5JwjsvGOBZliGe1wm2w__micro/img/FfrVVcWRcJPRY5Z9id6kAkXh8N8=/fit-in/64x64/filters:strip_icc()/pic5410206.png","Mythic Mischief":"B1h4rA9VVLB6-3NxDucMLw__micro/img/tWiVNnoxAUe5liLZFEGKIPiBMf4=/fit-in/64x64/filters:strip_icc()/pic6294970.png","Orléans":"nagl1li6kYt9elV9jbfVQw__micro/img/hUKCvnqgFvTl0aOMd8FLkgCObT0=/fit-in/64x64/filters:strip_icc()/pic6228507.jpg","Steam Park":"HA0kPnNDm7O0gh0ukPcGcw__micro/img/NR5S6AZIw_dHak-pSxvsJUzHOv8=/fit-in/64x64/filters:strip_icc()/pic2656302.jpg","Tabannusi: Builders of Ur":"0WmXXnvravcDiiQvJum0xA__micro/img/PDqStM-sCL9zDZOxbG3zgpfEnp8=/fit-in/64x64/filters:strip_icc()/pic6428410.jpg","Terra Mystica: Big Box":"aSwGrv9uvfRyBymlHJ-B8w__micro/img/6Is47WRIpux3rJ_Mw1-1UKtKj_4=/fit-in/64x64/filters:strip_icc()/pic6731109.jpg","Watergate":"iTBogxNFa3Ymh-6ST3srsw__micro/img/piEJx-UC10HNGn3lwIr2QUnF_Ls=/fit-in/64x64/filters:strip_icc()/pic4768766.jpg","Spirit Island: Nature Incarnate":"hE1lnC_WJ4TFDkmjpucUbQ__micro/img/9d6goCOjdhaw6dZNRcKPoBUXQaw=/fit-in/64x64/filters:strip_icc()/pic8114391.png","Pandemic Legacy: Season 1":"-Qer2BBPG7qGGDu6KcVDIw__micro/img/n6-sXYD6XXZoqIxq4P6AG7VPCuA=/fit-in/64x64/filters:strip_icc()/pic2452831.png","Spirit Island: Branch & Claw":"l1k4gxERlIuhCNIn3TPU_g__micro/img/lY24y7heQ5QHPo2L9lSaFICek0g=/fit-in/64x64/filters:strip_icc()/pic7010668.jpg","Viticulture: Tuscany Essential Edition":"Xf1C1NuxY1YOHPFmpmNqiw__micro/img/FQKfcvgzRWzla5-U04lXn0SrlMY=/fit-in/64x64/filters:strip_icc()/pic3064278.jpg","7 Wonders Duel":"zdagMskTF7wJBPjX74XsRw__micro/img/nXtpcw3tYaelntFHb1aH4YrN7Wk=/fit-in/64x64/filters:strip_icc()/pic2576399.jpg","Clank! Legacy: Acquisitions Incorporated":"hc2NDafu5c24iLJh_IZmyg__micro/img/v2WzacDprYF837E6h9O2WuFFmpw=/fit-in/64x64/filters:strip_icc()/pic4885780.png","Scythe: The Rise of Fenris":"GRp__UYY-wM-i2fg4Qzefw__micro/img/2nMJ9pMHX2NhtoDroCJgZBG0Bb0=/fit-in/64x64/filters:strip_icc()/pic3911078.jpg","Terra Mystica":"bre12I1YiXkZr7elvriz4A__micro/img/SAwaBrDhHbGuq6dFY-ok95qFMcU=/fit-in/64x64/filters:strip_icc()/pic5375624.jpg","Viticulture Essential Edition":"l_PRU2lVlX9seScRFcvFlA__micro/img/3EqHlTkNSnZNFHVaAeFSpzfzuIQ=/fit-in/64x64/filters:strip_icc()/pic6500949.jpg","Marvel Champions: The Card Game":"kRvUgYiaOq07kC67ZK5UoQ__micro/img/4DLQr45lpVBfCkiy-kVwhl4z4vQ=/fit-in/64x64/filters:strip_icc()/pic4900321.jpg","Civolution":"DahMIPzUpexvhUPAG3dGbA__micro/img/8Rjn9XgBRWZjuM6GPZTkIhcuNlo=/fit-in/64x64/filters:strip_icc()/pic8303209.jpg","Planet Unknown":"Uf5MlIplRQkSjQo9ob5lQw__micro/img/iacCq8fXbw6OoDYhTguHTiURgsg=/fit-in/64x64/filters:strip_icc()/pic8895057.png","Speakeasy":"Y7vIlh-m_Ugnv0jrUuOW3g__micro/img/1xpW5kUdG91z7DK_wdJsgq2FVME=/fit-in/64x64/filters:strip_icc()/pic8165052.jpg","Ezra and Nehemiah":"MVflz8gmtK1DZy49E-Llog__micro/img/9tBupF5yBqyXbuPYQYo9EF-Htys=/fit-in/64x64/filters:strip_icc()/pic7474410.jpg","Flip 7":"YrQxEB9Ef0kQorRApzG5vQ__micro/img/Nq86bIYE0j2AIFxDsDNBsG-fsPc=/fit-in/64x64/filters:strip_icc()/pic8780246.jpg","Inventions: Evolution of Ideas":"aXqSKhZ-J7Xl-TTWRCEq4g__micro/img/uJekPy4Eh8geRScby0hiVbpcwuA=/fit-in/64x64/filters:strip_icc()/pic7032801.jpg","Primal: The Awakening":"ZaK89ogXLarRb3zRq4lhjg__micro/img/-QyO-uS02DJERVPL3UDyS_ahrJc=/fit-in/64x64/filters:strip_icc()/pic5267092.jpg","Sankoré: The Pride of Mansa Musa":"28jZrGyS6xja-rSxSs8zWQ__micro/img/prDLs1wGHRrw0gfQz_2BT-LG39M=/fit-in/64x64/filters:strip_icc()/pic7414454.jpg","Clank! Legacy 2":"xzG46GKyfJM2HEhZVQ_K9Q__micro/img/EpuAhMkXCJUprLD5q0_1WKSyCbQ=/fit-in/64x64/filters:strip_icc()/pic7419605.jpg","Tiletum":"DvvSoTrB3-UMEgz2rBraHg__micro/img/5iDLPQYmW5tfTRikJ_-BBsKuH5c=/fit-in/64x64/filters:strip_icc()/pic7533289.jpg","Too Many Bones":"wKwRk0wYBcrtLAfgn4PCdg__micro/img/Q6VXZKoVSlMjTU7Vp8tn1tkcVzw=/fit-in/64x64/filters:strip_icc()/pic6624445.png","Too Many Bones: 40 Days in Daelore":"B7LUq5fhCIfS2rwvRQPxVw__micro/img/dxDa-W9TKPnbclQJugwJy7A6jkI=/fit-in/64x64/filters:strip_icc()/pic4214743.png","Too Many Bones: Age of Tyranny":"bRasb1NdCfxaIMqZ9YGZsg__micro/img/ywoPJ4LY7UPJDpsKCGnSC8G3Cts=/fit-in/64x64/filters:strip_icc()/pic4214742.png","Too Many Bones: Ghillie":"JKaEXom2cCz6AZ4dILEk3w__micro/img/4u2sGSRqTBpY1g6apJQ0QKQn01g=/fit-in/64x64/filters:strip_icc()/pic5620523.jpg","Too Many Bones: Nugget":"sUoUyXS9V5fQPicZzuCVWQ__micro/img/dpYHi9e98Mac3i25QKBTmCLbcew=/fit-in/64x64/filters:strip_icc()/pic5620516.jpg","Reef":"I3BgmkjP3g6cRQ4cejoHrg__micro/img/VpfLfIuprMEP4TBwQEtHLSBx5oY=/fit-in/64x64/filters:strip_icc()/pic5376430.png","Millennium Blades":"5h467xIvOqAE8YZdT3WH4w__micro/img/jIqli5128ARc5kTFybQ-aP7YaPY=/fit-in/64x64/filters:strip_icc()/pic7455420.jpg","Millennium Blades: Set Rotation":"TJHs-7LfPgEk7eelFgpEFA__micro/img/u_nPc9XwAxtsgcDrPc58YEGsPLQ=/fit-in/64x64/filters:strip_icc()/pic3066024.jpg","Yamataï":"3F1FUd4HRn2xLJpXEfmMbA__micro/img/6gXlUBDPv4w6Pxkb8nHWh6qpfBU=/fit-in/64x64/filters:strip_icc()/pic3357724.jpg","Tiny Epic Western":"kFjhHf1GyTywohUu4ylykA__micro/img/bo8aHjYqDTRcExX0CCwpQbzap18=/fit-in/64x64/filters:strip_icc()/pic2795243.jpg","Tiny Epic Dungeons":"rDOnDFAwGXi_fVsfp-ZCqw__micro/img/X386HO3FUsjwEJHvkJJ4kyMhdN4=/fit-in/64x64/filters:strip_icc()/pic6029065.jpg","Tiny Epic Kingdoms":"rEBwFqk9b4rT-hrGOQnZrA__micro/img/BO3yY8Cpsduc7qnH4_OF-b9UOEM=/fit-in/64x64/filters:strip_icc()/pic2947892.jpg","Tiny Epic Zombies":"J0oQSd9GYQuhUfR6xaxC9Q__micro/img/8yfVITEFTEOkPQWJ8olayeqfowY=/fit-in/64x64/filters:strip_icc()/pic3937056.jpg","Tiny Epic Mechs":"auUjnvi2D596hPBz0z0Ybg__micro/img/k2C3EF4tmxpMaVSlYtKgiFw6qJ8=/fit-in/64x64/filters:strip_icc()/pic4239499.jpg","Tiny Epic Dinosaurs":"iHH85cDgyfTdoM4BQddhKw__micro/img/opYZLlfWWl9giyLy6p3c_O1RFsw=/fit-in/64x64/filters:strip_icc()/pic4995784.jpg","Word on the Street":"d19HVb_gUXFh-9nKMDmykg__micro/img/XxilU4IjuSpLE_vh41HP3LdUtys=/fit-in/64x64/filters:strip_icc()/pic7065724.jpg","Copenhagen: Roll & Write":"mWAQ54FpL0DRSGxHi_lqRA__micro/img/u23liKUhezYPSlsz9k13JkcvYzE=/fit-in/64x64/filters:strip_icc()/pic4865739.jpg","Wingspan":"yLZJCVLlIx4c7eJEWUNJ7w__micro/img/5ZaRePVhfelfofF7T_OC1e0gUCw=/fit-in/64x64/filters:strip_icc()/pic4458123.jpg","Cascadia":"MjeJZfulbsM1DSV3DrGJYA__micro/img/x2BDobiHVhQHl7LhBimeU8L1ko4=/fit-in/64x64/filters:strip_icc()/pic5100691.jpg","Azul":"aPSHJO0d0XOpQR5X-wJonw__micro/img/3M2bj5ZXqAskTOvLTXRuHOH-Y44=/fit-in/64x64/filters:strip_icc()/pic6973671.png","Everdell":"fjE7V5LNq31yVEW_yuqI-Q__micro/img/TAgkPCJdNAIHZfn1BE1DXadBL9g=/fit-in/64x64/filters:strip_icc()/pic3918905.png","Sky Team":"uXMeQzNenHb3zK7Hoa6b2w__micro/img/WUPeTU-QmVFLHWyY3AYn2LOJzvg=/fit-in/64x64/filters:strip_icc()/pic7398904.jpg","Lost Ruins of Arnak":"6GqH14TJJhza86BX5HCLEQ__micro/img/2FKVaukjh9a-Kg9LWQuMSvLS34s=/fit-in/64x64/filters:strip_icc()/pic5674958.jpg","Splendor":"vNFe4JkhKAERzi4T0Ntwpw__micro/img/wj7pvZEgXNG-VJjP-66pJ6Ryxqk=/fit-in/64x64/filters:strip_icc()/pic8234167.png","Dune: Imperium – Uprising":"UVUkjMV_Q2paVUIUP30Vvw__micro/img/NLUsSSVMHts8-v1gJxC_LbAjSaE=/fit-in/64x64/filters:strip_icc()/pic7664424.jpg","Arborea":"KHT8Ex0wvRs5wAWPNo3xNg__micro/img/cVwE2gJ1pEn9r3lqRIFRlbChWTs=/fit-in/64x64/filters:strip_icc()/pic7230067.png","Distilled":"8YPBUoAlAvGSfcRTxr7EZQ__micro/img/KgBdSK9vB0rXL1O2VOmt6az7C9U=/fit-in/64x64/filters:strip_icc()/pic7104213.png","Eternal Decks":"Bo6QYIQWzRRcn7KyO3AIPg__micro/img/dGKr6hXpwAvwM9AvGRxv9cXtTII=/fit-in/64x64/filters:strip_icc()/pic8512516.png","Marco Polo Deluxe Master Set":"n1G7_aWToLAAB7Mqt8iwyA__micro/img/c8Ld-3E8S0devFlugLvyiAEESbY=/fit-in/64x64/filters:strip_icc()/pic2461346.png","An Infamous Traffic: Second Edition":"LeN0x5yRX6zYbZqz3jTLOg__micro/img/uPqT5dIPDzdPw_JmF1hT6ZbUtPY=/fit-in/64x64/filters:strip_icc()/pic3135977.jpg","Whisperwood":"fP_8PjKv8eKEbSA4HaM3lw__micro/img/68mcrvVq2l0TGpUnkti0iDTFWoM=/fit-in/64x64/filters:strip_icc()/pic9508095.png","DECKO: Pistachio":"2SSZomgqIgHr5GbDFCu5xg__micro/img/JoLzK6U8u6Q1cvT9LF75PmDh6-s=/fit-in/64x64/filters:strip_icc()/pic9083318.png","The Lord of the Rings: Ascension":"kcyWRbYvdPI-6dNSGy0PoA__micro/img/1ddWViaauuhb2XIQYQx5vyK-3xc=/fit-in/64x64/filters:strip_icc()/pic9544772.png","Brass: Pittsburgh":"cIlF4DxfLAtLUr6ZE-AYKA__micro/img/oUtpMcjY_KKyA3n0nfQL0YX077Y=/fit-in/64x64/filters:strip_icc()/pic9503415.png","Galileo's Truth":"rxTaDS5kX4Bq27RYHtWg6A__micro/img/z_ihrM9bnt-VwoPX6x-jXh4Hf6w=/fit-in/64x64/filters:strip_icc()/pic9025953.png","Nippon: Genro + Zaibatsu":"DVJamHS1e24-scuM8aRH8g__micro/img/iXxEownCXdt7hKrlHTC8NDFO6A4=/fit-in/64x64/filters:strip_icc()/pic2683981.jpg","Slay the Spire: Downfall":"6hxVUNPb8yDYn2mS_GfN7Q__micro/img/qVm4hI5kLvMIAwEk7xsV2XfdKEM=/fit-in/64x64/filters:strip_icc()/pic9126329.png","20 Strong: Nemesis, Tainted Grail & Etherfields":"uqc7pY26x-oRqwHyx6iQVw__micro/img/38aZRtGBtc-HR5FNCYSrut_H8kk=/fit-in/64x64/filters:strip_icc()/pic7858263.png","The Old King's Crown 2nd Printing":"q3Qp4L-rU3VOW6fMAFUJnQ__micro/img/DjoLZnvpAEafajCTBLLAVQYbSXo=/fit-in/64x64/filters:strip_icc()/pic8937255.jpg","JISOGI: Anime Studio Tycoon Reprint":"LyXjZJQNLQhqtm54UGI6Hg__micro/img/NHQP65meC6z6Kg4vazvXQbrfJ2Q=/fit-in/64x64/filters:strip_icc()/pic9531283.jpg","Arborea: Expanded Universe":"KHT8Ex0wvRs5wAWPNo3xNg__micro/img/cVwE2gJ1pEn9r3lqRIFRlbChWTs=/fit-in/64x64/filters:strip_icc()/pic7230067.png","Dice Throne Vanguard":"fx_i2HMyAeCyAh94fH7a1Q__micro/img/jogPksn4T4U7JbXTbNAlMq0NBVQ=/fit-in/64x64/filters:strip_icc()/pic4490309.png","Hanami: Samurai Reimagined":"V0QGjTnDi891-mmlMWqvBA__micro/img/WlaTXUDRkmN0Hstn2Sz_amdDmPg=/fit-in/64x64/filters:strip_icc()/pic9068738.jpg","Landmarks of the Lost Atlas":"wjrf4VbDFPx3MpnPmbV95w__micro/img/GdgG0ddvVEUYWwx5TL51GjhDYog=/fit-in/64x64/filters:strip_icc()/pic9715156.jpg","Legendary: Marvel – 2099":"xLKvPi3MYZf_-0ZIUTkuTw__micro/img/KAarHuR70x4PvFZ912MNLVdg6Zo=/fit-in/64x64/filters:strip_icc()/pic9478292.png","Legendary: Marvel – Weapon X":"IEt5O1ntVvmO4yp6mXBz7g__micro/img/9ikIIWNTDLFEQlutrovUXTLDMOU=/fit-in/64x64/filters:strip_icc()/pic8474914.png"};
+const CHAN={"The Dice Tower":["https://yt3.ggpht.com/T4MJ7amKFIGMySSD6fXYoUJHVESDVQPjtONLM2SdlmY27mbM4xiEbV5IDfFDeGeyAjGzPBOXDzU=s88-c-k-c0x00ffffff-no-rj-mo","@thedicetower","364K"],"Shut Up & Sit Down":["https://yt3.ggpht.com/D_V7dfvlvEG8Bn4cHUVLbIn2DqSRD9NIa5Pb6huQ5ngEM4SwogRaLg0tkyUwmJv1d8rBavFjKg=s88-c-k-c0x00ffffff-no-rj-mo","@shutupandsitdown","462K"],"No Pun Included":["https://yt3.googleusercontent.com/ytc/AIdro_k1-h37jBA9Yc9548tVix0WDOq3_sjVQszm-iAX85eVi0k=s88-c-k-c0x00ffffff-no-rj-mo","@NoPunIncluded","113K"],"Rahdo Runs Through":["https://yt3.ggpht.com/7qUSccY2dgGFs-tvBNQpMPnHbe85mZhD9xgYu4JEa7ixVurL1VrgG2F6zABvAK6e5KA1j_ELPw=s88-c-k-c0x00ffffff-no-rj-mo","@rahdo","111K"],"BoardGameCo":["https://yt3.googleusercontent.com/ytc/AIdro_mqzaf8TZZs1C9z1hm1zc8XSY2-8kAKnTNBwF05ecQL3Q=s88-c-k-c0x00ffffff-no-rj-mo","@BoardGameCo","70.3K"],"Board Game Hangover":["https://yt3.ggpht.com/pGf-U8Nnncam1Qu7zLYGr2gQ-V22tTUeLooZgFET6OqpibRx1HfoSHYBlPws5trvlHJubxhy4Q=s88-c-k-c0x00ffffff-no-rj-mo","@BoardGameHangover","83.1K"],"Before You Play":["https://yt3.googleusercontent.com/ytc/AIdro_m_GcMCe-O6hPpWj3lpoYe-lPUIOURXbGAyJ5f39aEyiMs=s88-c-k-c0x00ffffff-no-rj-mo","@BeforeYouPlay","99.5K"],"Man vs Meeple":["https://yt3.ggpht.com/WHz4K3zqMezJw4vYdHOBRCaFlG0kIhLTR_RaiJi8Aj8_TjVQgo87z5NFMLreqOF3uSBtrdkTzg=s88-c-k-c0x00ffffff-no-rj-mo","@meeple","77.6K"],"Heavy Cardboard":["https://yt3.ggpht.com/xsoT_oJ58wA0T7HFyntq-BhMZkoj_xxuCujkADOigW3RqgFYHg12KPD96yA-K8y13baND31X=s88-c-k-c0x00ffffff-no-rj-mo","@Heavycardboard","36.6K"],"Watch It Played":["https://yt3.googleusercontent.com/ytc/AIdro_mCnXBUgqFW4na9_NhVCyh__EYEyt4pUnQCjBTiS0FZUw=s88-c-k-c0x00ffffff-no-rj-mo","@WatchItPlayed","430K"],"Meeple University":["https://yt3.ggpht.com/49lkNUVqJ8vXIcXVANZb1qWtFwiypdqbpbrfEgN9v4_qsZ6MlosPlvl1Gb-bplQ-iWesbgn7ZnM=s88-c-k-c0x00ffffff-no-rj-mo","@MeepleUniversity","58.6K"],"Gaming Rules!":["https://yt3.googleusercontent.com/ytc/AIdro_nnFa0oqiyIT7lDS7xqvBdKgZyJsOSMFBINNlbTz2tNsuE=s88-c-k-c0x00ffffff-no-rj-mo","@GamingRulesVideos","64.3K"]};
+
+/* ===================== HELPERS ===================== */
+const $=s=>document.querySelector(s);
+function fmt(d){if(!d||d==='—')return'—';const [y,m,dd]=d.split('-');return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]+' '+(+dd)+(y!=='2026'?', '+y:'')}
+function hue(s){let h=0;for(const ch of s)h=(h*31+ch.charCodeAt(0))%360;return h}
+function cov(t){const w=t.replace(/^(The|A) /,'').split(/[\s:–-]+/).filter(Boolean);const ini=(w[0]?.[0]||'')+(w[1]?.[0]||'');const k=THUMB[t]?t:(typeof ALIAS!=='undefined'&&THUMB[ALIAS[t]])?ALIAS[t]:null;const tile=`<div class="cov" style="background:hsl(${hue(t)} 45% 42%)">${esc(ini.toUpperCase())}</div>`;return k?`<div class="cov img" style="background:hsl(${hue(t)} 45% 42%)"><img src="${BGGIMG+THUMB[k]}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()"><span>${esc(ini.toUpperCase())}</span></div>`:tile}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+const ST={pledged:['○','Pledged','pledged'],pm:['◐','PM locked','pm'],ship:['▸','Shipping','ship'],owned:['●','Owned','owned'],listed:['◆','Listed','listed'],sold:['✓','Sold','sold']};
+const chip=s=>`<span class="chip ${ST[s][2]}">${ST[s][0]} ${ST[s][1]}</span>`;
+const prog=s=>{const n={pledged:1,pm:2,ship:3,owned:4}[s]||0;return `<span class="prog">${[1,2,3,4].map(i=>`<i class="${i<=n?'f':''}"></i>`).join('')}</span>`};
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),2200)}
+// SAMPLE market price: deterministic pseudo value from title (clearly labelled sample)
+function samplePrice(t){const h=hue(t+'p');return 25+Math.round((h/360)*110)}
+function sampleTrend(t){const h=hue(t+'t');return Math.round(((h%41)-20)/2)}
+const owns=(u,t)=>copies.some(c=>c.owner===u&&c.title===t&&['owned','listed'].includes(c.state));
+
+
+/* ===== reviewer helpers ===== */
+const DATA_TITLES=new Set([...Object.keys(VIDEOS),...Object.values(RATINGS).flatMap(o=>Object.keys(o))]);
+function rkey(t){return ALIAS[t]||t}
+function revFor(c,user){
+  const t=rkey(c.title),out=[];
+  for(const rid of FOLLOWS[user]||[]){const R=REVIEWERS[rid];if(!R||(R.kind==='friend'&&R.user===user))continue;
+    let score=null,video=null;
+    if(rid==='bgg')score=c.rating||null;
+    else if(R.kind==='friend')score=RATINGS[R.user]?.[t]??null;
+    else score=RATINGS[rid]?.[t]??null;
+    if(R.channel&&VIDEOS[t]&&VIDEOS[t][R.channel])video=VIDEOS[t][R.channel];
+    out.push({rid,R,score,video});}
+  return out;
+}
+function avgFollowed(c,user){const xs=revFor(c,user).filter(x=>x.rid!=='bgg'&&x.score!=null).map(x=>x.score);return xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null}
+const ini=n=>n.split(/[\s&]+/).filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+function avImg(R){const ch=R.channel&&CHAN[R.channel];return ch?`<img src="${ch[0]}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:''}
+function revCell(c,user){
+  const rs=revFor(c,user).filter(x=>x.score!=null||x.video);
+  if(!rs.length)return '<span class="dim" style="font-size:12px">—</span>';
+  return `<div class="revs">${rs.slice(0,6).map(x=>{const cls=x.score==null?'vid':x.score>=8.5?'hi':x.score<6?'lo':'';const label=x.score!=null?(+x.score).toFixed(x.score%1?1:0):'▶';const tip=`${x.R.name}${x.score!=null?': '+x.score:''}${x.video?' · video: '+x.video[1]:''}`;
+    return x.video?`<a class="rv ${cls}" href="https://www.youtube.com/watch?v=${x.video[0]}" target="_blank" rel="noopener" title="${esc(tip)}"><i style="background:${x.R.color}">${avImg(x.R)}${ini(x.R.name)}</i>${label}${x.score!=null?' ▶':''}</a>`:`<span class="rv ${cls}" title="${esc(tip)}"><i style="background:${x.R.color}">${avImg(x.R)}${ini(x.R.name)}</i>${label}</span>`}).join('')}</div>`;
+}
+function revSection(c,user){
+  const t=rkey(c.title);const rs=revFor(c,user);
+  const others=VIDEOS[t]?Object.entries(VIDEOS[t]).filter(([ch])=>!rs.some(x=>x.R.channel===ch)):[];
+  const vc=(ch,v,score,who)=>`<a class="vcard" href="https://www.youtube.com/watch?v=${v[0]}" target="_blank" rel="noopener"><div class="vthumb"><img src="https://i.ytimg.com/vi/${v[0]}/mqdefault.jpg" alt="" referrerpolicy="no-referrer" onerror="this.remove()"><b>▶</b></div><div style="flex:1;min-width:0"><div style="font-weight:500;font-size:13px">${esc(v[1])}</div><div class="gsub">${esc(ch)} · ${esc(v[2])} · ${esc(v[3])} views</div></div>${score!=null?`<div class="score-big">${score}</div>`:''}</a>`;
+  let h=`<h3>Your reviewers ${t!==c.title?`<span class="dim" style="text-transform:none;letter-spacing:0">(base game: ${esc(t)})</span>`:''}</h3>`;
+  h+=rs.map(x=>{if(x.video)return vc(x.R.name+(x.R.channel&&x.R.channel!==x.R.name?' · '+x.R.channel:''),x.video,x.score);
+    return `<div class="vcard"><div class="vplay none">${x.rid==='bgg'?'★':'—'}</div><div style="flex:1"><div style="font-weight:500;font-size:13px">${esc(x.R.name)}</div><div class="gsub">${x.score!=null?(x.rid==='bgg'?'BGG average rating':'Rating on BGG'):'No rating or video found yet'}</div></div>${x.score!=null?`<div class="score-big">${x.score}</div>`:''}</div>`}).join('');
+  if(others.length)h+=`<h3>More videos on YouTube</h3>`+others.map(([ch,v])=>vc(ch,v,null)).join('');
+  h+=`<a class="btn sm" style="display:inline-block;text-decoration:none;margin-top:4px" href="https://www.youtube.com/results?search_query=${encodeURIComponent(t+' board game review')}" target="_blank" rel="noopener">Search YouTube for more ↗</a>`;
+  return h;
+}
+function vReviewers(){
+  const mine=copies.filter(c=>c.owner===me);
+  const cov=rid=>mine.filter(c=>revFor(c,me).some(x=>x.rid===rid&&(x.score!=null||x.video))).length;
+  const groups=[['Critics with scores',['tom','zee','rahdo']],['YouTube review channels',['susd','npi','bgco','bgh','byp','mvm','hc']],['How-to-play channels',['wip','mu','gr']],['BoardGameGeek',['bgg']],['Friends',['harris','marlon'].filter(f=>f!==me)]];
+  return `<div class="top"><div><h1>Reviewers ${me==='harris'?'I follow':esc(USERS[me].name)+' follows'}</h1><div class="sub">Followed reviewers show up next to every game in your lists. Scores come from each reviewer's own BGG ratings; videos come from YouTube.</div></div></div>
+  ${groups.map(([g,ids])=>`<div class="card" style="margin-bottom:14px"><div class="section-h"><h2>${g}</h2></div>${ids.map(rid=>{const R=REVIEWERS[rid];const on=FOLLOWS[me].includes(rid);return `<div class="rrow"><div class="av" style="background:${R.color};width:34px;height:34px;font-size:12px">${avImg(R)}${ini(R.name)}</div><div style="flex:1;min-width:0"><div style="font-weight:600">${esc(R.name)} ${R.bggUser?`<span class="gsub">BGG ${esc(R.bggUser)}</span>`:''}</div><div class="gsub">${esc(R.note)}${R.channel&&CHAN[R.channel]?' · '+CHAN[R.channel][1]+' · '+CHAN[R.channel][2]+' subscribers':''}</div></div><div class="gsub hide-m" style="text-align:right;min-width:110px">covers ${cov(rid)} of your ${mine.length} games</div><button class="toggle ${on?'on':''}" data-follow="${rid}">${on?'✓ Following':'Follow'}</button></div>`}).join('')}</div>`).join('')}
+  <div class="card"><div class="section-h"><h2>Follow any BGG user</h2><span class="sub">a reviewer, a friend, a designer: their BGG ratings become a column</span></div>
+   <div class="filters" style="border:0"><input id="bggu" placeholder="BGG username, e.g. TomVasel"><button class="btn pri" id="addbgg">Follow</button></div>
+   <div class="note">In the prototype only the accounts above have data. The real app would read the user's public BGG ratings on follow.</div></div>`;
+}
+
+let sortBy='bgg';
+let me='harris', route='collection', lane='incoming', q='', plat='all', friend='marlon';
+
+/* ===================== VIEWS ===================== */
+function counts(u){const m={incoming:0,owned:0,listed:0,sold:0};copies.filter(c=>c.owner===u).forEach(c=>{if(['pledged','pm','ship'].includes(c.state))m.incoming++;else m[c.state]++});return m}
+function vCollection(){
+  const U=USERS[me],k=counts(me);
+  const sampleNote=U.real?'':`<span class="chip sample">Sample account</span>`;
+  const rows=copies.filter(c=>c.owner===me&&(lane==='incoming'?['pledged','pm','ship'].includes(c.state):c.state===lane))
+    .filter(c=>!q||c.title.toLowerCase().includes(q))
+    .filter(c=>plat==='all'||(c.platform||'').includes(plat));
+  if(lane==='owned'||lane==='listed'){if(sortBy==='reviewers')rows.sort((a,b)=>(avgFollowed(b,me)??-1)-(avgFollowed(a,me)??-1));else rows.sort((a,b)=>(b.rating||0)-(a.rating||0))}
+  if(lane==='incoming'||lane==='sold')rows.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const head={incoming:['Game','Platform','Status','Your reviewers','Last signal','BGG'],owned:['Game','Year','Your reviewers','Plays','Market*',''],listed:['Game','Year','Your reviewers','Market*','Signal*',''],sold:['Game','Sold','Channel','Your reviewers','BGG','']}[lane];
+  const tr=c=>{
+    const g=`<td><div class="game">${cov(c.title)}<div style="min-width:0"><div class="gname">${esc(c.title)}</div><div class="gsub">${c.copyOf?`copy ${c.copyN} of ${c.copyOf}`:''}${c.notOwnedFlag?' <span class="chip warn">not marked owned on BGG</span>':''}</div></div></div></td>`;
+    if(lane==='incoming')return `<tr class="click" data-c="${c.id}">${g}<td class="plat">${esc(c.platform||'')}</td><td>${chip(c.state)}<div style="margin-top:4px">${prog(c.state)}</div></td><td>${revCell(c,me)}</td><td><div style="font-size:13px">${esc(c.lastEvent||'')}</div><div class="gsub">${fmt(c.date)}</div></td><td>${me==='harris'?'<span class="chip warn">not on BGG</span>':'<span class="dim">—</span>'}</td></tr>`;
+    if(lane==='owned')return `<tr class="click" data-c="${c.id}">${g}<td class="num dim">${c.year||''}</td><td>${revCell(c,me)}</td><td class="num">${c.plays||'<span class=dim>—</span>'}</td><td class="num dim">$${samplePrice(c.title)}</td><td><button class="btn sm" data-list="${c.id}">List for sale</button></td></tr>`;
+    if(lane==='listed'){const tr2=sampleTrend(c.title);const sig=tr2>4?['sell','Sell window']:tr2<-4?['reprice','Reprice']:['hold','Hold'];return `<tr class="click" data-c="${c.id}">${g}<td class="num dim">${c.year||''}</td><td>${revCell(c,me)}</td><td class="num dim">$${samplePrice(c.title)}</td><td><span class="sig ${sig[0]}">${sig[1]}</span></td><td><button class="btn sm" data-sell="${c.id}">Mark sold</button></td></tr>`}
+    return `<tr class="click" data-c="${c.id}">${g}<td class="num">${fmt(c.date)}</td><td>${esc(c.channel||'—')}${c.price?' · $'+c.price:''}</td><td>${revCell(c,me)}</td><td><span class="dim" style="font-size:12px">${syncQ.find(s=>s.title===c.title&&s.kind==='optional')?'not on BGG':'—'}</span></td><td></td></tr>`;
+  };
+  return `
+  <div class="top"><div><h1>${me==='harris'?'My collection':esc(U.name)+"'s collection"} ${sampleNote}</h1><div class="sub">BGG: ${esc(U.bgg)} · ${U.totals.entries} BGG entries · data read ${fmt(TODAY)}</div></div>
+   <div class="right"><button class="btn" data-go="sync">Review BGG changes (${syncQ.filter(s=>s.state==='pending').length})</button></div></div>
+  <div class="kpis">
+   <div class="kpi"><div class="l">Incoming</div><div class="v">${k.incoming}</div><div class="s">${me==='harris'?'from Gmail pledges':'BGG preordered'}</div></div>
+   <div class="kpi"><div class="l">Owned (BGG)</div><div class="v">${U.totals.owned}</div><div class="s">${k.owned} shown here</div></div>
+   <div class="kpi"><div class="l">Listed / for trade</div><div class="v">${k.listed}</div><div class="s">BGG for-trade flag</div></div>
+   <div class="kpi"><div class="l">Sold</div><div class="v">${k.sold}</div><div class="s">${me==='harris'?'eBay, from Gmail':'—'}</div></div>
+   <div class="kpi"><div class="l">Collection value*</div><div class="v">$—</div><div class="s">*needs a price source</div></div>
+  </div>
+  <div class="card">
+   <div class="tabs">${[['incoming','Incoming'],['owned','Owned'],['listed','For sale'],['sold','Sold']].map(([k2,l])=>`<button class="tab ${lane===k2?'on':''}" data-lane="${k2}">${l} <span class="n">${k[k2]}</span></button>`).join('')}</div>
+   <div class="filters"><input id="q" placeholder="Search titles…" value="${esc(q)}">
+    ${lane==='owned'||lane==='listed'?`<select id="sortby"><option value="bgg" ${sortBy==='bgg'?'selected':''}>Sort: BGG rating</option><option value="reviewers" ${sortBy==='reviewers'?'selected':''}>Sort: my reviewers' average</option></select>`:''}
+    ${lane==='incoming'?`<select id="plat"><option value="all">All platforms</option>${['Kickstarter','Gamefound','BackerKit'].map(p=>`<option ${plat===p?'selected':''}>${p}</option>`).join('')}</select>`:''}
+    <span class="dim" style="margin-left:auto;font-size:12px">${rows.length} copies · click a row for details</span></div>
+   ${rows.length?`<div style="overflow:auto"><table><thead><tr>${head.map((h,i)=>`<th class="${i>0&&/Plays|Market|Year|Sold|Price/.test(h)?'num':''}">${h}</th>`).join('')}</tr></thead><tbody>${rows.map(tr).join('')}</tbody></table></div>`:`<div class="empty">${me==='ren'?'Ren has no games yet. Connect Claude to import pledges from Gmail, or import a BGG collection.':'Nothing here yet.'}</div>`}
+   <div class="note">Real: titles, statuses, dates, plays, reviewer scores (their BGG ratings) and YouTube videos. Click a reviewer chip to open the video. *Market prices and signals are sample values until a price source is connected.${lane==='owned'&&me==='harris'?' Showing the top-rated and recently added owned games (48 of 273).':''}</div>
+  </div>`;
+}
+
+function vSync(){
+  const pend=syncQ.filter(s=>s.state==='approved').length;
+  const row=s=>`<tr class="sync-row ${s.state}" data-s="${s.id}"><td><div class="game">${cov(s.title)}<div><div class="gname">${esc(s.title)}</div><div class="gsub">${esc(s.why)}</div></div></div></td>
+   <td style="white-space:nowrap"><span class="strike">${esc(s.from)}</span><span class="arrow">→</span><b>${esc(s.to)}</b></td>
+   <td style="white-space:nowrap">${s.state==='pending'?`<button class="btn sm pri" data-ap="${s.id}">Approve</button> <button class="btn sm" data-sk="${s.id}">Skip</button>`:`<span class="chip ${s.state==='approved'?'owned':'plain'}">${s.state==='approved'?'✓ Approved':'Skipped'}</span> <button class="btn sm ghost" data-undo="${s.id}">Undo</button>`}</td></tr>`;
+  const main=syncQ.filter(s=>s.kind!=='optional'),opt=syncQ.filter(s=>s.kind==='optional');
+  return `<div class="top"><div><h1>BGG sync review</h1><div class="sub">SwapMeep is the source of truth. Nothing changes on BGG (user ${USERS.harris.bgg}) until you approve and push.</div></div>
+   <div class="right"><button class="btn" id="apall">Approve all pledges</button><button class="btn pri" id="push" ${pend?'':'disabled'}>Push ${pend} change${pend===1?'':'s'} to BGG</button></div></div>
+  <div class="card" style="margin-bottom:16px"><div class="section-h"><h2>Pledges missing from BGG</h2><span class="sub">${main.length} found in Gmail, none marked preordered on BGG</span></div>
+   <table><thead><tr><th>Game · evidence</th><th>BGG change</th><th></th></tr></thead><tbody>${main.map(row).join('')}</tbody></table></div>
+  <div class="card" style="margin-bottom:16px"><div class="section-h"><h2>Sold, but never on your BGG</h2><span class="sub">Optional: add as previously owned so your trade history is complete</span></div>
+   <table><tbody>${opt.map(row).join('')}</tbody></table></div>
+  <div class="card" style="margin-bottom:16px"><div class="section-h"><h2>Needs review: never auto-changed</h2><span class="sub">BGG says one thing, your email says nothing</span></div>
+   ${review.map(r=>`<div class="att ${r.state!=='open'?'done':''}"><div>${cov(r.title)}</div><div><div class="t">${esc(r.title)}</div><div class="m">${esc(r.text)}</div>${r.state!=='open'?`<div class="gsub">Decision: ${esc(r.state)}</div>`:''}</div><div class="act">${r.state==='open'?r.opts.map(o=>`<button class="btn sm" data-rv="${r.id}" data-o="${esc(o)}">${esc(o)}</button>`).join(''):''}</div></div>`).join('')}
+  </div>
+  <div class="card"><div class="section-h"><h2>Push history</h2></div>${pushHistory.length?pushHistory.map(p=>`<div class="att"><div><div class="t">${p.n} changes pushed <span class="chip sample">simulated</span></div><div class="m">${esc(p.titles)}</div></div><div class="act"><button class="btn sm" disabled>Revert batch</button></div></div>`).join(''):'<div class="empty">No pushes yet.</div>'}</div>`;
+}
+
+function vAttention(){
+  return `<div class="top"><div><h1>Needs attention</h1><div class="sub">Things that block a delivery, a sale or clean data. All items below come from your real Gmail and BGG data.</div></div></div>
+  <div class="card">${attention.map(a=>`<div class="att ${a.done?'done':''}"><div><span class="chip ${a.lvl==='warn'?'warn':'plain'}">${esc(a.cat)}</span></div><div><div class="t">${esc(a.t)}</div><div class="m">${esc(a.m)}</div>${a.done?`<div class="gsub">Resolved: ${esc(a.done)}</div>`:''}</div><div class="act">${a.done?`<button class="btn sm ghost" data-reopen="${a.id}">Reopen</button>`:a.act.map(x=>`<button class="btn sm" data-at="${a.id}" data-o="${esc(x)}">${esc(x)}</button>`).join('')}</div></div>`).join('')}</div>`;
+}
+
+function vMarket(){
+  const mine=copies.filter(c=>c.owner==='harris'&&['listed','owned'].includes(c.state)).slice(0,14);
+  const hot=['SETI: Search for Extraterrestrial Intelligence','Arcs','Ark Nova','Harmonies','Sky Team','Slay the Spire: The Board Game','Brass: Birmingham','Galactic Cruise','Castle Combo','Finspan'];
+  return `<div class="top"><div><h1>Market &amp; Hot</h1><div class="sub">Titles and BGG ratings are real. <span class="chip sample">Prices, trends and Hot ranks are sample data</span> BGG's Hot list API needs a registered token.</div></div></div>
+  <div class="grid2">
+   <div class="card"><div class="section-h"><h2>Your games: worth selling now?</h2></div><table><thead><tr><th>Game</th><th class="num">Median sold*</th><th class="num">30d*</th><th>Signal*</th></tr></thead><tbody>
+   ${mine.map(c=>{const t=sampleTrend(c.title);const s=t>4?['sell','Sell window']:t<-4?['wait','Wait']:['hold','Hold'];return `<tr class="click" data-c="${c.id}"><td><div class="game">${cov(c.title)}<div class="gname" style="max-width:220px">${esc(c.title)}</div></div></td><td class="num">$${samplePrice(c.title)}</td><td class="num" style="color:${t>0?'var(--owned)':t<0?'var(--warn)':'inherit'}">${t>0?'+':''}${t}%</td><td><span class="sig ${s[0]}">${s[1]}</span></td></tr>`}).join('')}
+   </tbody></table><div class="note">*Sample. Planned source: median of recent sold listings, with a "thin market" warning under 5 sales.</div></div>
+   <div class="card"><div class="section-h"><h2>Hot on BGG</h2><span class="chip sample">sample ranks</span></div>
+   ${hot.map((t,i)=>{const status=owns('harris',t)?'<span class="chip owned">● you own</span>':owns('marlon',t)?'<span class="chip plain">Marlon owns</span>':'';return `<div class="match"><div class="num" style="width:22px;text-align:left">${i+1}</div>${cov(t)}<div style="flex:1;min-width:0"><div class="gname">${esc(t)}</div></div>${status}</div>`}).join('')}
+   </div>
+  </div>`;
+}
+
+function matches(){
+  // computed from data, all real for Harris/Marlon
+  const out=[];
+  const users=['harris','marlon','jules'];
+  for(const a of users)for(const b of users){if(a===b)continue;
+    copies.filter(c=>c.owner===a&&c.state==='listed').forEach(c=>{if(WANTS[b].includes(c.title))out.push({from:a,to:b,title:c.title,type:'trade',why:`${USERS[a].name} has it for trade · ${USERS[b].name} wants it`})});
+    copies.filter(c=>c.owner===a&&c.state==='owned').forEach(c=>{if(WANTS[b].includes(c.title)&&!out.some(o=>o.title===c.title&&o.to===b))out.push({from:a,to:b,title:c.title,type:'own',why:`${USERS[a].name} owns it · on ${USERS[b].name}'s want list`})});
+  }
+  // special: TMB Marlon trade vs Harris BGG preorder flag; Eternal Decks
+  out.unshift({from:'marlon',to:'harris',title:'Too Many Bones',type:'trade',why:'Marlon has it for trade (+4 expansions, 15 plays) · your BGG still says Preordered'});
+  out.push({from:'harris',to:'marlon',title:'Eternal Decks',type:'pre',why:'Your BGG says Preordered · on Marlon\'s wishlist. Co-pledge, or offer him your copy'});
+  return out.filter(m=>!(m.from==='jules'||m.to==='jules')||true);
+}
+function vGroup(){
+  const ms=matches();
+  const common=copies.filter(c=>c.owner==='harris'&&['owned','listed'].includes(c.state)&&owns('marlon',c.title)).map(c=>c.title).filter((v,i,a)=>a.indexOf(v)===i);
+  const arriving=copies.filter(c=>['pledged','pm','ship'].includes(c.state)&&c.owner!=='ren').sort((a,b)=>({ship:0,pm:1,pledged:2}[a.state]-{ship:0,pm:1,pledged:2}[b.state])).slice(0,10);
+  const mp=copies.filter(c=>c.owner==='marlon'&&c.plays).sort((a,b)=>b.plays-a.plays).slice(0,7);const max=mp[0]?.plays||1;
+  return `<div class="top"><div><h1>Thursday Table</h1><div class="sub">Group of 4 · Harris &amp; Marlon use real BGG data · Jules &amp; Ren are sample accounts</div></div><div class="right"><button class="btn" data-go="shelf">Browse shelves</button><button class="btn pri" id="invite">Invite a friend</button></div></div>
+  <div class="hero"><div style="font-size:34px">⚠</div><div style="flex:1"><h2>Missed match: Spirit Island: Nature Incarnate</h2>You sold it on eBay on Jun 26, 2026, and it's on Marlon's want-in-trade list. Next time SwapMeep checks the group before you list.</div><div style="text-align:right"><div class="big">1</div><div style="font-size:12px">missed this year</div></div></div>
+  <div class="grid3" style="margin-bottom:16px">${Object.entries(USERS).map(([k2,u])=>`<div class="member" data-friend="${k2}"><div class="av" style="background:${u.color}">${u.name[0]}</div><div style="min-width:0"><div style="font-weight:600">${u.name} ${u.real?'':'<span class="chip sample">Sample account</span>'}</div><div class="gsub">${u.real?'BGG '+u.bgg+' · ':''}${u.totals.owned} owned · ${u.totals.trade} for trade</div></div></div>`).join('')}</div>
+  <div class="grid2">
+   <div class="card"><div class="section-h"><h2>Matches</h2><span class="sub">for trade or owned ↔ on a want list</span></div>
+    ${ms.map(m=>`<div class="match">${cov(m.title)}<div style="flex:1;min-width:0"><div class="gname">${esc(m.title)} ${(m.from==='jules'||m.to==='jules')?'<span class="chip sample">sample</span>':'<span class="chip real">real</span>'}</div><div class="why">${esc(m.why)}</div></div><div class="av" style="width:24px;height:24px;font-size:11px;background:${USERS[m.from].color}">${USERS[m.from].name[0]}</div><span class="dim">→</span><div class="av" style="width:24px;height:24px;font-size:11px;background:${USERS[m.to].color}">${USERS[m.to].name[0]}</div><button class="btn sm" data-ping="${esc(m.title)}">Ping</button></div>`).join('')}
+   </div>
+   <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="card"><div class="section-h"><h2>Arriving soon in the group</h2></div>${arriving.map(c=>`<div class="match">${cov(c.title)}<div style="flex:1;min-width:0"><div class="gname">${esc(c.title)}</div><div class="why">${USERS[c.owner].name} · ${esc(c.platform||'')}</div></div>${chip(c.state)}</div>`).join('')}</div>
+    <div class="card"><div class="section-h"><h2>Marlon's most played</h2><span class="chip real">real BGG plays</span></div><div style="padding:10px 16px">${mp.map(c=>`<div style="display:grid;grid-template-columns:1fr 50px;gap:8px;align-items:center;margin:6px 0"><div><div style="font-size:13px">${esc(c.title)}</div><div class="bar"><i style="width:${Math.max(3,c.plays/max*100)}%"></i></div></div><div class="num">${c.plays}</div></div>`).join('')}</div></div>
+    <div class="card"><div class="section-h"><h2>You both own</h2><span class="sub">54 titles in common on BGG</span></div><div class="pill-row">${common.map(t=>`<span class="chip plain">${esc(t)}</span>`).join('')}<span class="chip plain">+ more</span></div></div>
+   </div>
+  </div>`;
+}
+
+function vShelf(){
+  const u=USERS[friend];
+  const own=copies.filter(c=>c.owner===friend&&c.state==='owned').sort((a,b)=>(b.rating||0)-(a.rating||0));
+  const trade=copies.filter(c=>c.owner===friend&&c.state==='listed');
+  const pre=copies.filter(c=>c.owner===friend&&['pledged','pm','ship'].includes(c.state));
+  const both=own.filter(c=>owns(me,c.title)).length;
+  return `<div class="top"><div><h1><span class="av" style="display:inline-grid;width:30px;height:30px;vertical-align:middle;background:${u.color}">${u.name[0]}</span> ${esc(u.name)}'s shelf ${u.real?'<span class="chip real">real BGG data</span>':'<span class="chip sample">Sample account</span>'}</h1><div class="sub">${u.real?'BGG '+u.bgg+' · ':''}${u.totals.entries} entries · ${u.totals.owned} owned · ${u.totals.prev} previously owned · prices hidden unless listed</div></div>
+  <div class="right"><select id="fr" class="btn">${Object.entries(USERS).filter(([k2])=>k2!==me).map(([k2,v])=>`<option value="${k2}" ${k2===friend?'selected':''}>${v.name}</option>`).join('')}</select></div></div>
+  ${friend==='ren'?'<div class="card empty">Ren just joined. Their shelf fills in after they connect Claude and import from Gmail or BGG.</div>':`
+  <div class="grid2">
+   <div class="card"><div class="section-h"><h2>Owned, top rated</h2><span class="sub">${both} of these are on your shelf too</span></div><table><thead><tr><th>Game</th><th>${friend==='harris'||friend==='marlon'?USERS[friend].name+' rated':'Rating'}</th><th>Your reviewers</th><th class="num">Plays</th><th></th></tr></thead><tbody>
+    ${own.slice(0,22).map(c=>`<tr class="click" data-c="${c.id}"><td><div class="game">${cov(c.title)}<div class="gname" style="max-width:200px">${esc(c.title)}</div></div></td><td class="num" style="text-align:left">${RATINGS[friend]?.[rkey(c.title)]??'<span class=dim>—</span>'}</td><td>${revCell(c,me)}</td><td class="num">${c.plays||'<span class=dim>—</span>'}</td><td>${owns(me,c.title)?'<span class="chip owned">● you too</span>':WANTS[me].includes(c.title)?'<span class="chip listed">you want this</span>':''}</td></tr>`).join('')}
+   </tbody></table></div>
+   <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="card"><div class="section-h"><h2>For trade</h2><span class="sub">${trade.length}</span></div>${trade.map(c=>`<div class="match">${cov(c.title)}<div style="flex:1;min-width:0"><div class="gname">${esc(c.title)}</div><div class="why">${c.plays?c.plays+' plays · ':''}rating ${c.rating?.toFixed(2)||'—'}</div></div>${c.title==='Too Many Bones'&&me==='harris'?'<span class="chip listed">matches your BGG preorder</span>':''}<button class="btn sm" data-ping="${esc(c.title)}">Ask</button></div>`).join('')}</div>
+    <div class="card"><div class="section-h"><h2>Wants</h2></div><div class="pill-row">${WANTS[friend].map(t=>`<span class="chip ${owns(me,t)?'owned':'plain'}">${owns(me,t)?'● you own · ':''}${esc(t)}</span>`).join('')}</div></div>
+    <div class="card"><div class="section-h"><h2>Incoming</h2></div>${pre.length?pre.map(c=>`<div class="match">${cov(c.title)}<div style="flex:1" class="gname">${esc(c.title)}</div>${chip(c.state)}</div>`).join(''):'<div class="empty">None</div>'}</div>
+   </div></div>`}`;
+}
+
+/* ===================== DRAWER ===================== */
+function openCopy(id){
+  const c=copies.find(x=>x.id===id);if(!c)return;
+  const ev=[...c.events];
+  if(c.title==="Andromeda's Edge: Genesis"&&!ev.some(e=>e.sample))ev.push({d:'2026-02-26',t:'Pledge manager — pledge changed',src:'Gmail · Gamefound',real:true});
+  const evs=ev.sort((a,b)=>b.d.localeCompare(a.d));
+  const isIn=['pledged','pm','ship'].includes(c.state);
+  $('#drawer').innerHTML=`<header>${cov(c.title)}<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:17px">${esc(c.title)}</div><div class="gsub">${USERS[c.owner].name}${c.copyOf?` · copy ${c.copyN} of ${c.copyOf}`:''}${c.year?' · '+c.year:''}</div><div style="margin-top:6px">${chip(c.state)} ${isIn?prog(c.state):''}</div></div><button class="btn ghost" id="dx">✕</button></header>
+  <div class="body">
+   <div class="kv"><div>Platform / channel</div><div>${esc(c.platform||c.channel||'—')}</div><div>BGG rating</div><div class="num" style="text-align:left">${c.rating?c.rating.toFixed(3):'—'}</div><div>Plays (BGG)</div><div>${c.plays||'—'}</div><div>Paid</div><div class="dim">— not in data yet</div><div>Market*</div><div class="dim">$${samplePrice(c.title)} (sample)</div><div>BGG status</div><div>${isIn&&c.owner==='harris'?'Not in collection → <b>Preordered</b> queued for review':c.state==='sold'?'Not in your BGG collection':ST[c.state][1]}</div></div>
+   ${revSection(c,me)}
+   <h3>Timeline</h3>
+   ${evs.length?`<ul class="tl">${evs.map(e=>`<li class="${e.real?'real':''}"><div class="d">${fmt(e.d)}</div><div>${esc(e.t)}</div><div class="src">${esc(e.src)}${e.real?'':' · manual'}</div></li>`).join('')}</ul>`:'<div class="dim">No events yet. This copy came from the BGG import.</div>'}
+   ${c.state==='sold'&&c.price?`<h3>Sale</h3><div class="kv"><div>Price</div><div>$${c.price}</div></div>`:''}
+   <div id="dform"></div>
+  </div>
+  <div class="actions">
+   ${isIn?`<button class="btn pri" data-act="deliver">Mark delivered</button>`:''}
+   ${c.state==='owned'?`<button class="btn pri" data-act="list">List for sale</button>`:''}
+   ${c.state==='listed'?`<button class="btn pri" data-act="sell">Mark sold…</button><button class="btn" data-act="unlist">Unlist</button>`:''}
+   ${c.state==='owned'?`<button class="btn" data-act="sell">Mark sold…</button>`:''}
+   <span class="dim" style="font-size:12px;align-self:center;margin-left:auto">Each change queues a BGG update for review</span>
+  </div>`;
+  $('#drawer').classList.add('open');$('#dbg').classList.add('open');
+  $('#dx').onclick=closeD;
+  $('#drawer').querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>act(c,b.dataset.act));
+}
+function closeD(){$('#drawer').classList.remove('open');$('#dbg').classList.remove('open')}
+function queue(c,from,to,why){syncQ=syncQ.filter(s=>s.copy!==c.id);syncQ.unshift({id:'s'+c.id+Date.now(),copy:c.id,title:c.title,from,to,why,kind:'add',state:'pending'})}
+function act(c,a){
+  if(a==='deliver'){c.events.push({d:TODAY,t:'Marked delivered',src:'You'});c.state='owned';if(c.owner==='harris')queue(c,'not in collection','Own','Marked delivered '+fmt(TODAY));toast('Moved to Owned · BGG change queued');closeD();render();return}
+  if(a==='list'){c.events.push({d:TODAY,t:'Listed for sale',src:'You'});c.state='listed';if(c.owner==='harris')queue(c,'Own','Own + For trade','Listed '+fmt(TODAY));toast('Listed · group notified of matching wants');closeD();render();return}
+  if(a==='unlist'){c.state='owned';c.events.push({d:TODAY,t:'Unlisted',src:'You'});toast('Back in Owned');closeD();render();return}
+  if(a==='sell'){
+    const want=Object.keys(USERS).filter(u=>u!==c.owner&&WANTS[u].includes(c.title));
+    $('#dform').innerHTML=`<h3>Mark sold</h3>${want.length?`<div class="att" style="background:#fff7ed;border-radius:8px;margin-bottom:10px"><div>⚠</div><div><div class="t">${want.map(u=>USERS[u].name).join(', ')} want${want.length>1?'':'s'} this</div><div class="m">Offer it to the group before selling elsewhere?</div></div></div>`:''}
+    <div class="field">Channel<select id="ch"><option>eBay</option><option>BGG Marketplace</option><option>Facebook Marketplace</option><option>Friend (group)</option><option>Local</option></select></div>
+    <div class="field">Sale price (USD)<input id="pr" type="number" min="0" placeholder="e.g. 45"></div>
+    <button class="btn pri" id="dosell">Confirm sale</button>`;
+    $('#dosell').onclick=()=>{c.state='sold';c.channel=$('#ch').value;c.price=+$('#pr').value||null;c.date=TODAY;c.events.push({d:TODAY,t:'Sold via '+c.channel+(c.price?' for $'+c.price:''),src:'You'});if(c.owner==='harris')queue(c,'Own','Prev. owned','Sold '+fmt(TODAY));toast('Moved to Sold · BGG change queued');closeD();render()};
+  }
+}
+
+/* ===================== ROUTER / RENDER ===================== */
+function render(){
+  document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('on',n.dataset.route===route));
+  $('#b-sync').textContent=syncQ.filter(s=>s.state==='pending').length;
+  $('#b-att').textContent=attention.filter(a=>!a.done).length;
+  const v={collection:vCollection,sync:vSync,attention:vAttention,market:vMarket,group:vGroup,shelf:vShelf,reviewers:vReviewers}[route]||vCollection;
+  $('#main').innerHTML=v();bind();
+}
+function go(r){route=r;try{history.replaceState(null,'','#'+r)}catch(e){location.hash=r}render();window.scrollTo(0,0)}
+function bind(){
+  const M=$('#main');
+  M.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+  M.querySelectorAll('[data-lane]').forEach(b=>b.onclick=()=>{lane=b.dataset.lane;render()});
+  const qi=$('#q');if(qi){qi.oninput=e=>{q=e.target.value.toLowerCase();const pos=e.target.selectionStart;render();const n=$('#q');n.focus();n.setSelectionRange(pos,pos)}}
+  const pl=$('#plat');if(pl)pl.onchange=e=>{plat=e.target.value;render()};
+  const sb=$('#sortby');if(sb)sb.onchange=e=>{sortBy=e.target.value;render()};
+  M.querySelectorAll('[data-follow]').forEach(b=>b.onclick=()=>{const r=b.dataset.follow,f=FOLLOWS[me];const i=f.indexOf(r);if(i>=0)f.splice(i,1);else f.push(r);toast((i>=0?'Unfollowed ':'Following ')+REVIEWERS[r].name);render()});
+  const ab=$('#addbgg');if(ab)ab.onclick=()=>{const u=$('#bggu').value.trim();if(!u)return;const hit=Object.entries(REVIEWERS).find(([k,v])=>(v.bggUser||'').toLowerCase()===u.toLowerCase());if(hit){if(!FOLLOWS[me].includes(hit[0]))FOLLOWS[me].push(hit[0]);toast('Following '+hit[1].name);render()}else toast('Prototype: would read '+u+'\'s public BGG ratings and add them as a column')};
+  M.querySelectorAll('.rv,a.vcard').forEach(a=>a.addEventListener('click',e=>e.stopPropagation()));
+  M.querySelectorAll('tr.click').forEach(r=>r.onclick=e=>{if(e.target.closest('button'))return;openCopy(r.dataset.c)});
+  M.querySelectorAll('[data-list]').forEach(b=>b.onclick=()=>act(copies.find(c=>c.id===b.dataset.list),'list'));
+  M.querySelectorAll('[data-sell]').forEach(b=>b.onclick=()=>{openCopy(b.dataset.sell);act(copies.find(c=>c.id===b.dataset.sell),'sell')});
+  M.querySelectorAll('[data-ap]').forEach(b=>b.onclick=()=>{syncQ.find(s=>s.id===b.dataset.ap).state='approved';render()});
+  M.querySelectorAll('[data-sk]').forEach(b=>b.onclick=()=>{syncQ.find(s=>s.id===b.dataset.sk).state='skipped';render()});
+  M.querySelectorAll('[data-undo]').forEach(b=>b.onclick=()=>{syncQ.find(s=>s.id===b.dataset.undo).state='pending';render()});
+  const apall=$('#apall');if(apall)apall.onclick=()=>{syncQ.forEach(s=>{if(s.state==='pending'&&s.kind!=='optional')s.state='approved'});render()};
+  const push=$('#push');if(push)push.onclick=()=>{const ap=syncQ.filter(s=>s.state==='approved');pushHistory.unshift({n:ap.length,titles:ap.map(s=>s.title+' → '+s.to).join(' · ')});syncQ=syncQ.filter(s=>s.state!=='approved');toast(ap.length+' changes pushed (simulated, nothing sent to BGG)');render()};
+  M.querySelectorAll('[data-rv]').forEach(b=>b.onclick=()=>{review.find(r=>r.id===b.dataset.rv).state=b.dataset.o;render()});
+  M.querySelectorAll('[data-at]').forEach(b=>b.onclick=()=>{const a=attention.find(x=>x.id===b.dataset.at);if(b.dataset.o==='Go to sync'){go('sync');return}a.done=b.dataset.o;if(a.id==='a7'&&b.dataset.o==='Mark both delivered'){copies.filter(c=>['Agricola Special Edition','Distilled: Cocktails'].includes(c.title)).forEach(c=>act(c,'deliver'))}if(a.id==='a1'&&b.dataset.o==='Open BackerKit email'){a.done=false;toast('Would open the BackerKit email in Gmail');return}render()});
+  M.querySelectorAll('[data-reopen]').forEach(b=>b.onclick=()=>{attention.find(x=>x.id===b.dataset.reopen).done=false;render()});
+  M.querySelectorAll('[data-friend]').forEach(b=>b.onclick=()=>{if(b.dataset.friend===me){go('collection');return}friend=b.dataset.friend;go('shelf')});
+  const fr=$('#fr');if(fr)fr.onchange=e=>{friend=e.target.value;render()};
+  M.querySelectorAll('[data-ping]').forEach(b=>b.onclick=()=>toast('Would message the group about '+b.dataset.ping+' (prototype)'));
+  const inv=$('#invite');if(inv)inv.onclick=()=>toast('Invite flow: share link → sign in → connect Claude to the SwapMeep MCP → enter BGG username');
+}
+document.querySelectorAll('.nav').forEach(n=>n.onclick=()=>go(n.dataset.route));
+$('#dbg').onclick=closeD;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeD()});
+const sel=$('#asUser');sel.innerHTML=Object.entries(USERS).map(([k2,u])=>`<option value="${k2}">${u.name}${u.real?'':' (sample)'}</option>`).join('');
+sel.onchange=e=>{me=e.target.value;friend=me==='marlon'?'harris':'marlon';lane=me==='harris'?'incoming':'owned';render()};
+const h=(location.hash||'').slice(1);if(['collection','sync','attention','market','group','shelf','reviewers'].includes(h))route=h;
+window.addEventListener('hashchange',()=>{const r=location.hash.slice(1);if(r&&r!==route&&['collection','sync','attention','market','group','shelf','reviewers'].includes(r)){route=r;render()}});
+render();
+</script>
+</body>
+</html>
